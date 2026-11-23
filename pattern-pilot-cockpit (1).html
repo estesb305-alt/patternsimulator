@@ -1,0 +1,2457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pattern Pilot: Cockpit Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4EC; --surface:#FFFFFF; --text:#18202E; --muted:#57616F; --line:#D2D8C6;
+  --magenta:#A3246A; --magenta-soft:#F7E4EF; --sky:#2F6FB5; --ok:#1E8556; --alert:#C9362A; --ghost:#F2B300;
+  --panel:#16223A; --panel-2:#223152; --panel-text:#EAF0FA; --panel-muted:#9FB0CC;
+  --body:"Atkinson Hyperlegible", "Segoe UI", Verdana, system-ui, sans-serif;
+  --num:"Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  color-scheme: light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1420; --surface:#172034; --text:#E8EDF5; --muted:#A6B0C2; --line:#2B3756;
+    --magenta:#E36DAB; --magenta-soft:#3A1F33; --sky:#71A8E8; --ok:#43C48A; --alert:#F26A57;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1420; --surface:#172034; --text:#E8EDF5; --muted:#A6B0C2; --line:#2B3756;
+  --magenta:#E36DAB; --magenta-soft:#3A1F33; --sky:#71A8E8; --ok:#43C48A; --alert:#F26A57;
+  color-scheme: dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:17px;line-height:1.5;padding-bottom:44px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible+span,select:focus-visible{outline:3px solid var(--ghost);outline-offset:2px}
+[hidden]{display:none !important}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 20px;border-bottom:3px solid var(--magenta);background:var(--surface)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{margin:0;font-size:1.5rem;line-height:1.1;color:var(--magenta)}
+.brand p{margin:0;color:var(--muted);font-size:.95rem}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font-size:.9rem;padding:4px 10px;border-radius:999px;background:var(--magenta-soft);color:var(--magenta);font-weight:700}
+.btn{border:2px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;font-weight:700}
+.btn:hover{border-color:var(--magenta)}
+.primary{background:var(--magenta);border:2px solid var(--magenta);color:#fff;border-radius:10px;padding:12px 22px;font-weight:700;font-size:1.05rem}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+
+main{max-width:1320px;margin:0 auto;padding:18px}
+
+/* intro + menu */
+.lesson{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px;align-items:start}
+.lesson h2,.menu h2{font-size:2rem;line-height:1.15;margin:0 0 10px}
+.lesson p{max-width:62ch}
+.diagram{background:#DDE7CF;border-radius:14px;padding:10px;border:1px solid var(--line);color:#1B2433}
+.diagram svg{width:100%;height:auto;display:block}
+.facts{margin:16px 0 22px;padding:0;list-style:none;display:grid;gap:10px}
+.facts li{padding-left:16px;border-left:4px solid var(--magenta)}
+.menu{max-width:980px}
+.menu fieldset{border:0;padding:0;margin:0 0 22px}
+.menu legend{font-weight:700;font-size:1.2rem;margin-bottom:8px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.card{position:relative;display:block}
+.card input{position:absolute;opacity:0;pointer-events:none}
+.card span{display:block;height:100%;padding:14px 16px;border:2px solid var(--line);border-radius:12px;background:var(--surface)}
+.card strong{display:block;font-size:1.08rem;margin-bottom:4px}
+.card small{color:var(--muted);font-size:.93rem;line-height:1.4;display:block}
+.card input:checked+span{border-color:var(--magenta);box-shadow:inset 0 0 0 2px var(--magenta);background:var(--magenta-soft)}
+.sides{display:flex;gap:22px;flex-wrap:wrap}
+.sides label{display:flex;align-items:center;gap:10px;font-weight:700}
+.sides select{font:inherit;padding:8px 10px;border-radius:8px;border:2px solid var(--line);background:var(--surface);color:var(--text)}
+.note{color:var(--muted);font-size:.95rem;max-width:70ch}
+
+/* simulator */
+.sim{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+.mapwrap{position:relative;height:min(70vh,760px);min-height:380px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#DDE7CF}
+#map{display:block;width:100%;height:100%;touch-action:none}
+.warn{position:absolute;left:50%;top:14px;transform:translateX(-50%);max-width:88%;padding:10px 18px;border-radius:10px;font-weight:700;font-size:1.05rem;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.25);color:#fff}
+.warn.alert{background:#C9362A}
+.warn.hint{background:#1F3A66;color:#fff}
+.warn.good{background:#1E8556;color:#fff;font-size:1.05rem}
+.legtag{position:absolute;left:12px;bottom:12px;background:rgba(22,34,58,.88);color:#fff;padding:6px 12px;border-radius:8px;font-weight:700}
+.paused{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,20,32,.35);color:#fff;font-size:2.4rem;font-weight:700;letter-spacing:.02em}
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end;margin-top:12px}
+.cgroup{display:flex;flex-direction:column;gap:6px}
+.cgroup .lbl{font-size:.9rem;color:var(--muted);font-weight:700}
+.cgroup .row{display:flex;gap:6px}
+.ctl{min-width:86px;min-height:54px;border-radius:12px;border:2px solid var(--line);background:var(--surface);font-weight:700;font-size:1rem;user-select:none;-webkit-user-select:none;touch-action:none}
+.ctl.on{background:var(--magenta);border-color:var(--magenta);color:#fff}
+.exitbtn{min-height:54px;background:var(--ok);border:2px solid var(--ok);color:#fff;border-radius:12px;padding:0 20px;font-weight:700;font-size:1.05rem}
+.keys{flex-basis:100%;margin:2px 0 0;color:var(--muted);font-size:.9rem}
+
+.side{display:flex;flex-direction:column;gap:14px}
+.coach{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--ghost);border-radius:12px;padding:14px 16px}
+.coach h2{margin:0 0 4px;font-size:1.25rem}
+.coach p{margin:0}
+.coach .why{margin-top:8px;color:var(--muted);font-size:.95rem}
+.panel{background:var(--panel);color:var(--panel-text);border-radius:14px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.inst{background:var(--panel-2);border-radius:10px;padding:8px 10px}
+.inst .k{font-size:.82rem;color:var(--panel-muted)}
+.inst .v{font-family:var(--num);font-weight:700;font-size:2rem;line-height:1.05;font-variant-numeric:tabular-nums}
+.inst .v small{font-size:1rem;font-weight:600;color:var(--panel-muted);margin-left:3px}
+.inst .s{font-size:.85rem;color:var(--panel-muted)}
+.inst.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.bar{height:8px;border-radius:4px;background:#0E1730;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ghost);width:0}
+.radio{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.radio h3{margin:0 0 6px;font-size:1.05rem}
+.radio ol{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:.92rem}
+.radio li b{display:block;color:var(--sky);font-size:.85rem}
+.radio li.me b{color:var(--magenta)}
+.radio .empty{color:var(--muted)}
+
+/* modal */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(14,20,32,.45);overflow:auto}
+.overlay.peek{justify-content:flex-end;align-items:flex-start;background:rgba(14,20,32,.18)}
+.modal{background:var(--surface);color:var(--text);width:min(600px,100%);border-radius:16px;padding:22px 24px;border-top:6px solid var(--magenta);box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.overlay.peek .modal{width:min(430px,100%);margin-top:80px}
+.modal h2{margin:0 0 8px;font-size:1.45rem;line-height:1.2}
+.modal p{margin:0 0 10px}
+.radiohead{display:flex;justify-content:space-between;color:var(--muted);font-weight:700;font-size:.92rem;margin-bottom:6px}
+.choices,.calls{display:grid;gap:10px;margin-top:10px}
+.choices button,.calls button{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-weight:700;line-height:1.4}
+.choices button:hover,.calls button:hover{border-color:var(--magenta)}
+.choices small{display:block;font-weight:400;color:var(--muted)}
+.calls button{font-weight:400}
+.good{color:var(--ok);font-weight:700;font-size:1.2rem}
+.bad{color:var(--alert);font-weight:700;font-size:1.2rem}
+blockquote{margin:6px 0 12px;padding:10px 14px;border-left:4px solid var(--ok);background:var(--bg);border-radius:6px}
+.mrow{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+#sockMini{display:block;margin:8px auto;border-radius:12px}
+.checklist{list-style:none;padding:0;margin:10px 0;display:grid;gap:8px}
+.checklist button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;font-weight:700}
+.checklist button:disabled{opacity:.5;cursor:default}
+.checklist .box{width:22px;height:22px;border:2px solid var(--muted);border-radius:5px;flex:none;display:grid;place-items:center}
+.checklist button.done{border-color:var(--ok)}
+.checklist button.done .box{background:var(--ok);border-color:var(--ok)}
+.checklist button.done .box::after{content:"✓";color:#fff;font-size:14px}
+.checklist button.done:disabled{opacity:1}
+
+/* debrief */
+.debrief{position:fixed;inset:0;z-index:30;background:var(--bg);overflow:auto;padding:20px 18px 60px}
+.dcard{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px}
+.dmap .wrap{height:min(64vh,620px);min-height:320px;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+#replay{width:100%;height:100%;display:block}
+.legend{display:flex;gap:18px;align-items:center;margin:10px 0;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:26px;height:5px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.dinfo h2{margin:0;font-size:2rem}
+.score{font-family:var(--num);font-weight:700;font-size:4.5rem;line-height:1;margin:6px 0;color:var(--magenta)}
+.dgrade{font-size:1.25rem;font-weight:700;margin:0}
+.dreason{color:var(--muted);margin:4px 0 14px}
+.items{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.items li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.items .head{display:flex;justify-content:space-between;gap:10px;font-weight:700}
+.items .mark{margin-right:6px}
+.items .ok .mark{color:var(--ok)}
+.items .no .mark{color:var(--alert)}
+.items .pts{font-family:var(--num);font-size:1.15rem;white-space:nowrap}
+.items p{margin:4px 0 0;color:var(--muted);font-size:.93rem}
+.dcredit{text-align:center;color:var(--muted);font-size:.9rem;margin-top:22px}
+
+.info{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--magenta);border-radius:12px;padding:16px 18px}
+.info h2,.modal .facts2+.why{margin-top:0}
+.info h2{margin:0 0 8px;font-size:1.35rem;line-height:1.25}
+.info p{margin:0 0 10px}
+.qcount{color:var(--muted);font-weight:700;font-size:.92rem;margin:0 0 4px}
+.facts2{display:grid;gap:8px;margin:12px 0}
+.facts2 div{background:var(--bg);border-radius:8px;padding:8px 10px}
+.facts2 dt{font-size:.82rem;color:var(--muted);font-weight:700}
+.facts2 dd{margin:0}
+.why{color:var(--muted);font-size:.95rem}
+.bigscore{font-family:var(--num);font-size:3.5rem;font-weight:700;color:var(--magenta);line-height:1}
+.mrow.start{justify-content:flex-start}
+.explorebar{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+#map{cursor:default}
+kbd{font-family:var(--num);font-size:.85rem;font-weight:700;padding:0 6px;min-width:22px;display:inline-block;text-align:center;border-radius:5px;border:1px solid var(--line);border-bottom-width:2px;background:var(--bg);color:var(--text);margin-left:4px;line-height:1.5}
+.ctl kbd{margin-left:6px}
+.ctl.on kbd{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.5)}
+.kblegend{display:none;flex-wrap:wrap;gap:8px 18px;align-items:center;font-size:.95rem;flex-basis:100%}
+.kblegend kbd{margin:0 2px 0 0}
+#flightControls.kbonly .cgroup{display:none}
+#flightControls.kbonly .kblegend{display:flex}
+#flightControls.kbonly .keys{display:none}
+.sim.kb .mapwrap{height:min(78vh,860px)}
+.calls .num,.choices .num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--magenta-soft);color:var(--magenta);margin-right:10px;font-weight:700;font-family:var(--num);font-size:1.05rem;vertical-align:middle}
+.keytable{width:100%;border-collapse:collapse;margin:6px 0 4px}
+.keytable td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.keytable td:first-child{white-space:nowrap;width:44%}
+.legtag b{margin-right:8px}
+.legtag span{font-weight:400;opacity:.9}
+.legtag .get{color:#F2B300;font-weight:700;margin-left:8px}
+#cockpit{position:absolute;inset:0;width:100%;height:100%;opacity:0;pointer-events:none;transition:opacity 1s ease}
+#cockpit.on{opacity:1;pointer-events:auto}
+@media (prefers-reduced-motion: reduce){#cockpit{transition:opacity .3s linear}}
+.mapwrap.ckmode .legtag{top:12px;bottom:auto}
+.mapwrap.ckmode .warn{top:auto;bottom:calc(26% + 16px)}
+.gabtn{background:var(--alert);border-color:var(--alert)}
+.exitbtn kbd{background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.5)}
+.profwrap{margin-top:16px}
+.profwrap h3{margin:0 0 8px;font-size:1.1rem}
+.profwrap canvas{width:100%;height:190px;display:block;border-radius:10px;border:1px solid var(--line)}
+.turncue{position:absolute;left:50%;top:62px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:10px 20px 10px 14px;border-radius:14px;background:rgba(22,34,58,.94);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:92%;z-index:3}
+.turncue .tc-main{display:block;font-size:1.3rem;line-height:1.2}
+.turncue .tc-sub{display:block;font-size:.95rem;opacity:.9}
+.turncue .tc-bar{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.25);margin-top:6px;overflow:hidden;width:180px}
+.turncue .tc-bar i{display:block;height:100%;background:#F2B300;width:0}
+.turncue.right .tc-arrow{transform:scaleX(-1)}
+.turncue.ready .tc-arrow{color:#F2B300}
+.turncue.now{background:#F2B300;color:#1B2433;animation:cuePulse .7s ease-in-out infinite alternate}
+.turncue.hold{background:rgba(201,54,42,.94)}
+.mapwrap.ckmode .turncue{left:32%}
+@keyframes cuePulse{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.06)}}
+@media (prefers-reduced-motion: reduce){.turncue.now{animation:none}}
+.resume{position:absolute;inset:0;display:grid;place-items:center;background:rgba(14,20,32,.28);color:#fff;font-size:2rem;font-weight:700;z-index:4;pointer-events:none}
+.resume b{display:inline-block;margin-left:10px;color:#F2B300;font-family:var(--num);font-size:3rem}
+.balltube{position:relative;height:22px;border-radius:11px;background:#0E1730;margin-top:8px;border:1px solid #3A4A6B}
+.balltube::before,.balltube::after{content:"";position:absolute;top:0;bottom:0;width:2px;background:#9FB0CC}
+.balltube::before{left:calc(50% - 11px)}.balltube::after{left:calc(50% + 9px)}
+#iBall{position:absolute;top:2px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#EAF0FA;transition:left .1s linear}
+.turndist{position:absolute;left:12px;top:58px;display:flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border-radius:12px;background:rgba(22,34,58,.9);color:#fff;z-index:3;max-width:min(330px,60%)}
+.turndist svg{color:#F2B300;flex:none}
+.turndist.right svg{transform:scaleX(-1)}
+.turndist .td-num{display:block;font-size:.95rem}
+.turndist .td-num b{font-family:var(--num);font-size:1.7rem;color:#F2B300;font-variant-numeric:tabular-nums}
+.turndist .td-lbl{display:block;font-size:.88rem;line-height:1.3}
+.turndist .td-time{display:block;font-size:.8rem;opacity:.75}
+.mapwrap.ckmode .turndist{top:auto;bottom:calc(26% + 12px)}
+.mapwrap:not(.ckmode) .turndist{top:auto;bottom:58px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:32px;align-items:center;padding:8px 0 18px}
+.hero h2{font-size:2.4rem;line-height:1.1;margin:0 0 12px}
+.lead{font-size:1.12rem;color:var(--muted);max-width:56ch;margin:0 0 18px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.big{font-size:1.1rem;padding:14px 24px;border-radius:12px}
+.perks{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.perks li{padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+.lessonpanel{margin-top:10px;padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.lessonpanel h2{margin:0 0 8px;font-size:1.7rem}
+.ideas{list-style:none;counter-reset:idea;padding:0;margin:0 0 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.ideas li{counter-increment:idea;position:relative;padding:14px 14px 14px 56px;background:var(--bg);border-radius:12px}
+.ideas li::before{content:counter(idea);position:absolute;left:14px;top:14px;width:30px;height:30px;border-radius:50%;background:var(--magenta);color:#fff;display:grid;place-items:center;font-weight:700}
+.ideas b{display:block}
+.menuhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+.menuhead h2{margin:0}
+.step{border:0;padding:16px 0 6px;margin:0;border-top:1px solid var(--line)}
+.step legend{font-weight:700;font-size:1.25rem;display:flex;align-items:center;gap:10px;padding:0;margin-bottom:12px}
+.stepnum{width:30px;height:30px;border-radius:50%;background:var(--magenta);color:#fff;display:inline-grid;place-items:center;font-size:1rem}
+.step.dim .cards{opacity:.4;pointer-events:none}
+.card span{position:relative;transition:border-color .15s,transform .15s}
+.card:hover span{border-color:var(--magenta)}
+.card .ico{width:40px;height:40px;fill:none;stroke:var(--magenta);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;display:block;margin-bottom:8px}
+.card input:checked+span .ico{stroke:var(--magenta)}
+.card input:checked+span::after{content:"✓";position:absolute;top:10px;right:12px;width:24px;height:24px;border-radius:50%;background:var(--magenta);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.card input:focus-visible+span{outline:3px solid var(--ghost);outline-offset:2px}
+.badge{display:inline-block;font-style:normal;font-size:.78rem;font-weight:700;color:var(--ok);background:color-mix(in srgb, var(--ok) 14%, transparent);padding:2px 8px;border-radius:999px;margin-bottom:6px}
+.optrows{display:grid;gap:14px}
+.optrow{display:grid;grid-template-columns:200px auto 1fr;gap:8px 18px;align-items:center}
+.optlbl b{display:block}
+.optlbl small{color:var(--muted)}
+.opthelp{margin:0;color:var(--muted);font-size:.93rem}
+.seg{display:inline-flex;flex-wrap:wrap;border:2px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);width:max-content;max-width:100%}
+.seg label{position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:10px 16px;font-weight:700;cursor:pointer;border-right:1px solid var(--line);white-space:nowrap}
+.seg label:last-child span{border-right:0}
+.seg input:checked+span{background:var(--magenta);color:#fff}
+.seg input:focus-visible+span{outline:3px solid var(--ghost);outline-offset:-3px}
+.more{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:12px 16px;background:var(--surface)}
+.more summary{cursor:pointer;font-weight:700}
+.more[open] summary{margin-bottom:12px}
+.linkbtn{background:none;border:0;color:var(--magenta);text-decoration:underline;padding:4px 0;font-weight:700}
+.startbar{position:sticky;bottom:44px;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px;padding:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 -4px 18px rgba(0,0,0,.08)}
+.summary{margin:0;font-weight:700}
+.summary span{display:inline-block;margin:2px 6px 2px 0;padding:3px 10px;border-radius:999px;background:var(--magenta-soft);color:var(--magenta);font-size:.92rem}
+@media (max-width:560px){.startbar{padding:10px 12px}.summary{display:none}.startbar .primary{width:100%}}
+.menu{padding-bottom:24px}
+@media (max-width:980px){.hero{grid-template-columns:1fr}.hero h2{font-size:1.9rem}.optrow{grid-template-columns:1fr}}
+footer.credit{position:fixed;left:0;right:0;bottom:0;z-index:10;text-align:center;font-size:.85rem;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);color:var(--muted)}
+
+@media (max-width:980px){
+  .sim,.lesson,.dcard{grid-template-columns:1fr}
+  .mapwrap{height:62vh}
+  .cards{grid-template-columns:1fr}
+  .overlay.peek{align-items:flex-end;justify-content:center}
+  .overlay.peek .modal{margin-top:0}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  main{padding:12px}
+  .ctl{min-width:72px}
+  .lesson h2,.menu h2{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect x="2" y="6" width="36" height="28" rx="4" fill="none" stroke="var(--magenta)" stroke-width="3" stroke-dasharray="6 4"/><path d="M20 10v20M12 18h16M16 28h8" stroke="var(--text)" stroke-width="3" stroke-linecap="round"/></svg>
+    <div><h1>Pattern Pilot</h1><p>Cockpit edition: fly the whole pattern from the pilot’s seat</p></div>
+  </div>
+  <div class="top-actions" id="simActions" hidden>
+    <span class="chip" id="flightChip"></span>
+    <button class="btn" id="btnKeys">Keyboard</button>
+    <button class="btn" id="btnPause">Pause</button>
+    <button class="btn" id="btnRestart">Restart</button>
+    <button class="btn" id="btnMenu">Change flight</button>
+  </div>
+</header>
+
+<main>
+  <!-- WELCOME -->
+  <section id="scrIntro">
+    <div class="hero">
+      <div class="hero-text">
+        <h2>Fly the traffic pattern at Pine Ridge</h2>
+        <p class="lead">Take off, fly the pattern, and land from the pilot’s seat. You’ll learn where to turn, what to say on the radio, and how to set up a smooth landing.</p>
+        <div class="hero-actions">
+          <button class="primary big" id="btnToMenu">Start flying</button>
+          <button class="btn big" id="btnLearn">Learn the pattern first</button>
+        </div>
+        <ul class="perks">
+          <li><b>New to flying?</b> Guided mode shows you where to go and coaches every step.</li>
+          <li><b>Your choice of controls:</b> fly with the keyboard or with touch buttons.</li>
+          <li><b>No pressure:</b> pause any time, and every flight ends with a debrief and tips.</li>
+        </ul>
+      </div>
+      <div class="hero-art diagram"><svg viewBox="0 0 640 360" role="img" aria-labelledby="dgT">
+            <title id="dgT">A left-hand traffic pattern: upwind, crosswind, downwind, base, and final legs around a runway, with a 45 degree entry and a departure path</title>
+            <defs>
+              <marker id="arM" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#A3246A"/></marker>
+              <marker id="arB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2F6FB5"/></marker>
+              <marker id="arG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1E8556"/></marker>
+              <marker id="arK" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3D434B"/></marker>
+            </defs>
+            <rect x="170" y="250" width="300" height="20" rx="2" fill="#3D434B"/>
+            <line x1="192" y1="260" x2="448" y2="260" stroke="#fff" stroke-width="1.5" stroke-dasharray="9 7"/>
+            <text x="176" y="265" fill="#fff" font-size="13" font-weight="700" font-family="Barlow Condensed, Arial Narrow, sans-serif">9</text>
+            <text x="465" y="265" fill="#fff" font-size="13" font-weight="700" text-anchor="end" font-family="Barlow Condensed, Arial Narrow, sans-serif">27</text>
+            <g fill="none" stroke="#A3246A" stroke-width="3.5" marker-end="url(#arM)">
+              <path d="M475 260 H552"/>
+              <path d="M560 252 V90"/>
+              <path d="M552 80 H92"/>
+              <path d="M80 88 V250"/>
+              <path d="M88 260 H164"/>
+            </g>
+            <path d="M412 8 L330 72" fill="none" stroke="#2F6FB5" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arB)"/>
+            <path d="M560 270 H585 L622 233" fill="none" stroke="#1E8556" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arG)"/>
+            <circle cx="170" cy="80" r="7" fill="#F2B300" stroke="#1B2433" stroke-width="1.5"/>
+            <g font-family="Atkinson Hyperlegible, Verdana, sans-serif" font-size="16" font-weight="700" fill="#1B2433">
+              <text x="512" y="294" text-anchor="middle">Upwind</text>
+              <text x="550" y="176" text-anchor="end">Crosswind</text>
+              <text x="470" y="68" text-anchor="middle">Downwind</text>
+              <text x="70" y="176" text-anchor="end">Base</text>
+              <text x="126" y="294" text-anchor="middle">Final</text>
+              <text x="420" y="30" fill="#2F6FB5">45° entry</text>
+              <text x="630" y="222" text-anchor="end" fill="#1E8556" font-size="14">Departure</text>
+            </g>
+            <g font-family="Atkinson Hyperlegible, Verdana, sans-serif" font-size="13" fill="#3E4756">
+              <text x="160" y="106">Abeam the numbers: reduce power</text>
+              <text x="320" y="170" text-anchor="middle">Pattern altitude: 1,000 ft above the airport</text>
+              <text x="320" y="190" text-anchor="middle">All turns are to the left in this pattern</text>
+              <text x="580" y="325" text-anchor="middle">Wind</text>
+            </g>
+            <path d="M620 340 H542" stroke="#3D434B" stroke-width="3" marker-end="url(#arK)"/>
+          </svg></div>
+    </div>
+
+    <div class="lessonpanel" id="lessonPanel" hidden>
+      <h2>The traffic pattern in 5 ideas</h2>
+      <p class="lead">A traffic pattern is the standard path airplanes fly around an airport. When everyone flies the same shape at the same height, pilots know where to look for each other.</p>
+      <ol class="ideas">
+        <li><b>Fly at pattern altitude.</b> That’s usually 1,000 ft above the airport. Pine Ridge sits at 700 ft, so you’ll fly at 1,700 ft on your altimeter.</li>
+        <li><b>Take off and land into the wind.</b> The windsock shows which way it’s blowing. Its open end faces into the wind.</li>
+        <li><b>Turn the right way.</b> Most patterns use left turns (left traffic). The segmented circle around the windsock shows which way each runway turns.</li>
+        <li><b>Talk on the radio.</b> Pine Ridge has no control tower, so pilots tell each other where they are on a shared frequency called CTAF.</li>
+        <li><b>Arriving? Use the 45° entry.</b> Join the middle of the downwind leg at a 45° angle, already at pattern altitude.</li>
+      </ol>
+      <div class="mrow start"><button class="primary big" id="btnLessonGo">Got it, choose a flight</button></div>
+    </div>
+  </section>
+
+  <!-- OPTIONS -->
+  <section id="scrMenu" class="menu" hidden>
+    <div class="menuhead">
+      <h2>Set up your flight</h2>
+      <button class="btn" id="btnBackLesson">◀ Back</button>
+    </div>
+
+    <fieldset class="step">
+      <legend><span class="stepnum">1</span>What do you want to do?</legend>
+      <div class="cards">
+        <label class="card"><input type="radio" name="scenario" value="explore"><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 36s-11-10-11-18a11 11 0 0 1 22 0c0 8-11 18-11 18z"/><circle cx="20" cy="18" r="4"/></svg><em class="badge">New? Start here</em><strong>Explore the pattern</strong><small>No flying. Tap spots on a map to learn what happens at each one, then try a quick challenge.</small></span></label>
+        <label class="card"><input type="radio" name="scenario" value="arrival" checked><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 9 L27 24"/><path d="M19 25 h9 v-9"/><path d="M5 33 h30"/></svg><strong>Arrive and land</strong><small>Fly in from outside, join the pattern on the 45°, and land.</small></span></label>
+        <label class="card"><input type="radio" name="scenario" value="closed"><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="10" width="30" height="20" rx="7"/><path d="M17 6 l4 4 -4 4"/></svg><strong>Take off and fly the pattern</strong><small>Take off, fly all the way around the pattern, and land.</small></span></label>
+        <label class="card"><input type="radio" name="scenario" value="departure"><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><path d="M5 33 h13"/><path d="M13 30 L33 10"/><path d="M24 10 h9 v9"/></svg><strong>Take off and leave</strong><small>Take off, climb to pattern altitude, and depart the area.</small></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset class="step" id="stepMode">
+      <legend><span class="stepnum">2</span>How much help do you want?</legend>
+      <div class="cards">
+        <label class="card"><input type="radio" name="mode" value="guided" checked><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14"/><path d="M26 14 l-4 9 -9 4 4-9z"/></svg><em class="badge">Recommended first</em><strong>Guided</strong><small>A yellow path shows where to fly, turn cues pop up, and a coach explains each step.</small></span></label>
+        <label class="card"><input type="radio" name="mode" value="practice"><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="14"/><circle cx="20" cy="20" r="7"/><circle cx="20" cy="20" r="1.8"/></svg><strong>Practice</strong><small>No yellow path. Hints pop up if you drift. Another airplane shares the pattern.</small></span></label>
+        <label class="card"><input type="radio" name="mode" value="checkride"><span><svg class="ico" viewBox="0 0 40 40" aria-hidden="true"><rect x="9" y="7" width="22" height="28" rx="3"/><path d="M14 22 l4 4 8-9"/></svg><strong>Checkride</strong><small>No hints at all. Two other airplanes in the pattern. You’re scored at the end.</small></span></label>
+      </div>
+      <p class="note exploreNote" hidden>Explore mode doesn’t need this step. Skip ahead and press Start.</p>
+    </fieldset>
+
+    <fieldset class="step" id="stepOpts">
+      <legend><span class="stepnum">3</span>Flying options</legend>
+      <div class="optrows">
+        <div class="optrow">
+          <div class="optlbl"><b>Controls</b><small>Pick one way to fly.</small></div>
+          <div class="seg" role="radiogroup" aria-label="Controls">
+            <label><input type="radio" name="ctl" value="keys" checked><span>⌨️ Keyboard</span></label>
+            <label><input type="radio" name="ctl" value="buttons"><span>👆 Touch buttons</span></label>
+          </div>
+          <p class="opthelp" id="ctlHelp"></p>
+        </div>
+        <div class="optrow">
+          <div class="optlbl"><b>Sim speed</b><small>Slower gives you more time to think.</small></div>
+          <div class="seg" role="radiogroup" aria-label="Sim speed">
+            <label><input type="radio" name="speed" value="1.0"><span>🐢 Slow</span></label>
+            <label><input type="radio" name="speed" value="1.6" checked><span>Normal</span></label>
+            <label><input type="radio" name="speed" value="2.6"><span>🐇 Fast</span></label>
+          </div>
+          <p class="opthelp" id="speedHelp"></p>
+        </div>
+        <div class="optrow">
+          <div class="optlbl"><b>Rudder</b><small>The pedals that yaw the nose.</small></div>
+          <div class="seg" role="radiogroup" aria-label="Rudder">
+            <label><input type="radio" name="rudder" value="auto"><span>Easier: automatic</span></label>
+            <label><input type="radio" name="rudder" value="manual" checked><span>Real: I use the rudder</span></label>
+          </div>
+          <p class="opthelp" id="rudHelp"></p>
+        </div>
+      </div>
+      <details class="more">
+        <summary>More options</summary>
+        <div class="optrows">
+          <div class="optrow">
+            <div class="optlbl"><b>Runway 9 pattern</b><small>Which way you turn.</small></div>
+            <div class="seg"><label><input type="radio" name="side9" value="L" checked><span>Left turns</span></label><label><input type="radio" name="side9" value="R"><span>Right turns</span></label></div>
+          </div>
+          <div class="optrow">
+            <div class="optlbl"><b>Runway 27 pattern</b><small>Which way you turn.</small></div>
+            <div class="seg"><label><input type="radio" name="side27" value="L" checked><span>Left turns</span></label><label><input type="radio" name="side27" value="R"><span>Right turns</span></label></div>
+          </div>
+          <div class="optrow">
+            <div class="optlbl"><b>Climb keys</b><small>Keyboard only.</small></div>
+            <div class="seg"><label><input type="radio" name="pitch" value="normal" checked><span>↑ climbs</span></label><label><input type="radio" name="pitch" value="sim"><span>Flight-sim style: ↓ climbs</span></label></div>
+          </div>
+        </div>
+        <p class="note">Left turns are standard. The wind picks your runway, and it changes every flight. After every radio call or checklist, the flight waits 2 seconds before starting again.</p>
+        <button class="linkbtn" id="btnResetOpts" type="button">Reset all options</button>
+      </details>
+    </fieldset>
+
+    <div class="startbar">
+      <p class="summary" id="optSummary" aria-live="polite"></p>
+      <button class="primary big" id="btnStart">Start flight ▶</button>
+    </div>
+  </section>
+
+  <!-- SIM -->
+  <section id="scrSim" hidden>
+    <div class="sim">
+      <div>
+        <div class="mapwrap" id="mapwrap">
+          <canvas id="map" aria-label="Top-down map of Pine Ridge Regional airport and your airplane"></canvas>
+          <canvas id="cockpit" aria-label="Cockpit view out the windshield during the final approach"></canvas>
+          <div class="warn" id="warn" role="status" hidden></div>
+          <div class="legtag" id="legTag">Pre-flight</div>
+          <div class="turndist" id="turnDist" hidden aria-live="off"><svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true"><path d="M36 44 V24 a12 12 0 0 0 -12 -12 H12" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M19 4 L9 12 L19 20" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><div><span class="td-num"><b id="tdDist">0.0</b> <small id="tdUnit">NM</small> to go</span><span class="td-lbl" id="tdLabel"></span><span class="td-time" id="tdTime"></span></div></div>
+          <div class="turncue" id="turnCue" hidden aria-live="polite"><svg class="tc-arrow" viewBox="0 0 48 48" width="46" height="46" aria-hidden="true"><path d="M36 44 V24 a12 12 0 0 0 -12 -12 H12" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M19 4 L9 12 L19 20" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b class="tc-main"></b><span class="tc-sub"></span><i class="tc-bar"><i></i></i></div></div>
+          <div class="paused" id="pausedTag" hidden>Paused</div>
+          <div class="resume" id="resumeTag" hidden><span>Get ready… <b>2</b></span></div>
+        </div>
+        <div class="controls" id="flightControls">
+          <div class="cgroup"><span class="lbl">Turn</span><div class="row">
+            <button class="ctl" data-k="left" aria-label="Turn left (hold)">◀ Left <kbd>A</kbd></button>
+            <button class="ctl" data-k="right" aria-label="Turn right (hold)">Right ▶ <kbd>D</kbd></button></div></div>
+          <div class="cgroup"><span class="lbl">Climb or descend</span><div class="row">
+            <button class="ctl" data-k="up" aria-label="Climb (hold)">▲ Climb <kbd class="kU">W</kbd></button>
+            <button class="ctl" data-k="down" aria-label="Descend (hold)">▼ Descend <kbd class="kD">S</kbd></button>
+            <button class="ctl" id="btnLevel">Level off <kbd>L</kbd></button></div></div>
+          <div class="cgroup"><span class="lbl">Power</span><div class="row">
+            <button class="ctl" data-k="pDown" aria-label="Reduce power (hold)">− Power <kbd>Q</kbd></button>
+            <button class="ctl" data-k="pUp" aria-label="Add power (hold)">+ Power <kbd>E</kbd></button>
+            <button class="ctl" id="btnFull">Full <kbd>F</kbd></button></div></div>
+          <div class="cgroup"><span class="lbl">Look out the side</span><div class="row">
+            <button class="ctl" data-k="lookL" aria-label="Look left (hold)">Look left <kbd>Z</kbd></button>
+            <button class="ctl" data-k="lookR" aria-label="Look right (hold)">Look right <kbd>C</kbd></button></div></div>
+          <div class="cgroup"><span class="lbl">Rudder (yaw)</span><div class="row">
+            <button class="ctl" data-k="rudL" aria-label="Left rudder (hold)">◁ Left rudder <kbd>N</kbd></button>
+            <button class="ctl" data-k="rudR" aria-label="Right rudder (hold)">Right rudder ▷ <kbd>M</kbd></button></div></div>
+          <div class="cgroup"><span class="lbl">Flaps <b id="flapLbl">0°</b></span><div class="row">
+            <button class="ctl" id="btnFlapUp">Flaps up <kbd>R</kbd></button>
+            <button class="ctl" id="btnFlapDn">Flaps down <kbd>V</kbd></button></div></div>
+          <button class="exitbtn" id="btnExit" hidden>Exit runway <kbd>X</kbd></button>
+          <button class="exitbtn gabtn" id="btnGA" hidden>Go around <kbd>G</kbd></button>
+          <div class="kblegend" aria-label="Keyboard controls">
+            <span><kbd>A</kbd><kbd>D</kbd> or <kbd>←</kbd><kbd>→</kbd> turn (ailerons)</span>
+            <span><kbd>N</kbd><kbd>M</kbd> left / right rudder</span>
+            <span class="lgPitch"><kbd>W</kbd><kbd>S</kbd> or <kbd>↑</kbd><kbd>↓</kbd> climb / descend</span>
+            <span><kbd>L</kbd> level off</span>
+            <span><kbd>E</kbd><kbd>Q</kbd> power up / down</span>
+            <span><kbd>F</kbd> full power</span>
+            <span><kbd>V</kbd><kbd>R</kbd> flaps down / up</span>
+            <span><kbd>Z</kbd><kbd>C</kbd> look left / right</span>
+            <span><kbd>G</kbd> go around</span>
+            <span><kbd>X</kbd> exit runway</span>
+            <span><kbd>P</kbd> pause</span>
+            <span><kbd>?</kbd> all keys</span>
+          </div>
+          <p class="keys">The small map in the corner shows where you are. Press <kbd>?</kbd> for all keyboard controls. Keyboard: arrows or WASD to turn and climb/descend, L to level off, E or + for more power, Q or − for less, X to exit the runway, P or space to pause.</p>
+        </div>
+        <div class="explorebar" id="exploreBar" hidden>
+          <button class="primary" id="btnTour">Take the tour</button>
+          <button class="btn" id="btnQuiz">Find-it challenge</button>
+          <button class="btn" id="btnFly">Fly this pattern</button>
+        </div>
+      </div>
+      <aside class="side">
+        <div class="info" id="infoCard" aria-live="polite" hidden></div>
+        <div class="coach" id="coachCard" aria-live="polite">
+          <h2 id="coachTitle">Before you fly</h2>
+          <p id="coachText">Check the wind and pick your runway.</p>
+          <p class="why" id="coachWhy" hidden></p>
+        </div>
+        <div class="panel" id="instPanel" aria-label="Instrument panel">
+          <div class="inst"><div class="k">Altitude</div><div class="v" id="iAlt">0<small>ft</small></div><div class="s" id="iAgl">0 ft above airport</div></div>
+          <div class="inst"><div class="k">Airspeed</div><div class="v" id="iSpd">0<small>kt</small></div><div class="s" id="iSpdNote">&nbsp;</div></div>
+          <div class="inst"><div class="k">Heading</div><div class="v" id="iHdg">000<small>°</small></div><div class="s" id="iHdgNote">&nbsp;</div></div>
+          <div class="inst"><div class="k">Vertical speed</div><div class="v" id="iVs">0<small>fpm</small></div><div class="s" id="iVsNote">Level</div></div>
+          <div class="inst"><div class="k">Flaps</div><div class="v" id="iFlaps">0<small>°</small></div><div class="s" id="iFlapsNote">Up</div></div>
+          <div class="inst"><div class="k">Stall speed</div><div class="v" id="iStall">48<small>kt</small></div><div class="s">with these flaps</div></div>
+          <div class="inst wide"><div style="flex:1"><div class="k">Ball (coordination)</div><div class="balltube"><i id="iBall"></i></div></div><div style="text-align:right;min-width:42%"><div class="k">Rudder</div><div class="v" id="iRud" style="font-size:1.4rem">Centered</div><div class="s" id="iBallNote">Ball centered</div></div></div>
+          <div class="inst wide"><div style="flex:1"><div class="k">Power</div><div class="v" id="iRpm">0<small>RPM</small></div><div class="bar"><i id="iPow"></i></div></div><div style="text-align:right"><div class="k">Leg</div><div class="v" id="iLeg" style="font-size:1.5rem">–</div><div class="s" id="iWind">Read the windsock</div></div></div>
+        </div>
+        <div class="radio" id="radioBox">
+          <h3>Radio: CTAF 122.8</h3>
+          <ol id="radioLog"><li class="empty">Nobody has called yet.</li></ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<div class="debrief" id="debrief" hidden>
+  <div class="dcard">
+    <div class="dmap">
+      <div class="wrap"><canvas id="replay" aria-label="Replay of your flight path over the ideal pattern"></canvas></div>
+      <div class="legend"><span><i style="background:#F2B300"></i>Ideal path</span><span><i style="background:#A3246A"></i>Your path</span><button class="btn" id="btnReplay">Replay flight</button></div>
+      <div class="profwrap" id="profWrap" hidden><h3>Your final approach from the side</h3><canvas id="profile" aria-label="Side view of your descent compared with the 3 degree glidepath"></canvas><p class="note">Yellow dashed line: the 3° glidepath. Magenta line: your path.</p></div>
+    </div>
+    <div class="dinfo">
+      <h2>Debrief</h2>
+      <p class="score"><span id="dPct">0</span>%</p>
+      <p class="dgrade" id="dGrade"></p>
+      <p class="dreason" id="dReason"></p>
+      <ul class="items" id="dItems"></ul>
+      <div class="mrow" style="justify-content:flex-start">
+        <button class="primary" id="dAgain">Fly again</button>
+        <button class="btn" id="dMenu">Change flight</button>
+      </div>
+    </div>
+  </div>
+  <p class="dcredit">Learning activity created by B.Estes assisted with AI, used with permission.</p>
+</div>
+
+<footer class="credit">Learning activity created by B.Estes assisted with AI, used with permission.</footer>
+
+<script>
+(() => {
+/* ---------- constants ---------- */
+const RAD = Math.PI / 180;
+let TS = 1.6;                                  // time speed-up so the pattern takes ~1 minute (Slower option lowers it)
+const FIELD = 700, TPA = 1700;                // feet MSL
+const L = 4500, D = 4500, RW_W = 400;         // runway length, downwind spacing, (drawn) runway width, in feet
+const VIEW = 12000;                            // half-width of the map before a runway is picked, feet
+const SEG_X = 1600, SEG_Y = 2700;              // segmented circle position
+const APT = 'Pine Ridge', ME = 'Cessna 123AB';
+const LEG = {brief:'Pre-flight', inbound:'45° entry', downwind:'Downwind', base:'Base', final:'Final', rollout:'Landing roll', exiting:'Taxi clear', takeoff:'Takeoff roll', upwind:'Upwind', crosswind:'Crosswind', exit:'Departing', explore:'Explore the pattern'};
+
+const $ = id => document.getElementById(id);
+const vec = h => ({x: Math.sin(h * RAD), y: Math.cos(h * RAD)});
+const hdgOf = v => (Math.atan2(v.x, v.y) / RAD + 360) % 360;
+const angDiff = (a, b) => ((a - b + 540) % 360) - 180;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const pad3 = h => String((Math.round(h) % 360) || 360).padStart(3, '0');
+const compass = h => ['north','northeast','east','southeast','south','southwest','west','northwest'][Math.round((((h % 360) + 360) % 360) / 45) % 8];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const settings = {scenario:'arrival', mode:'guided', side:{9:'L', 27:'L'}, ctl:'keys', invert:false};
+let G = null;
+const keys = {};
+const overlay = $('overlay'), modal = $('modal');
+
+/* ---------- screens ---------- */
+function show(id) {
+  ['scrIntro','scrMenu','scrSim'].forEach(s => $(s).hidden = s !== id);
+  $('simActions').hidden = id !== 'scrSim';
+  if (id === 'scrSim') resize();
+  window.scrollTo(0, 0);
+}
+/* ---------- welcome and options screens ---------- */
+const pick = name => (document.querySelector(`input[name=${name}]:checked`) || {}).value;
+const setPick = (name, val) => { const el = document.querySelector(`input[name=${name}][value="${val}"]`); if (el) el.checked = true; };
+const OPT_DEFAULTS = {scenario: 'arrival', mode: 'guided', ctl: 'keys', speed: '1.6', rudder: 'manual', side9: 'L', side27: 'L', pitch: 'normal'};
+const OPT_NAMES = Object.keys(OPT_DEFAULTS);
+function loadOpts() { let saved = {}; try { saved = JSON.parse(localStorage.getItem('patternPilotOptions') || '{}') || {}; } catch (_) {} OPT_NAMES.forEach(n => setPick(n, saved[n] || OPT_DEFAULTS[n])); refreshOpts(); }
+function saveOpts() { const o = {}; OPT_NAMES.forEach(n => o[n] = pick(n)); try { localStorage.setItem('patternPilotOptions', JSON.stringify(o)); } catch (_) {} }
+function refreshOpts() {
+  const sc = pick('scenario'), ex = sc === 'explore';
+  $('stepMode').classList.toggle('dim', ex); $('stepOpts').classList.toggle('dim', ex);
+  document.querySelector('.exploreNote').hidden = !ex;
+  $('ctlHelp').textContent = pick('ctl') === 'keys' ? 'Arrows or WASD to fly, plus a few letter keys. A key guide shows under the cockpit, and ? lists every key.' : 'Big on-screen buttons for every control. Good for touch screens. Flying keys are turned off.';
+  $('speedHelp').textContent = {'1.0': 'Close to real life. A full pattern takes several minutes.', '1.6': 'A little faster than real life. A good place to start.', '2.6': 'Things happen quickly. For pilots who know the pattern.'}[pick('speed')];
+  $('rudHelp').textContent = pick('rudder') === 'auto' ? 'The rudder works by itself in the air. You still steer with it on the ground.' : 'Use the rudder with every turn to keep the ball centered, and hold right rudder on takeoff.';
+  const names = {explore: 'Explore the pattern', arrival: 'Arrive and land', closed: 'Take off and fly the pattern', departure: 'Take off and leave'};
+  const chips = ex ? [names[sc]] : [names[sc], {guided: 'Guided', practice: 'Practice', checkride: 'Checkride'}[pick('mode')], pick('ctl') === 'keys' ? 'Keyboard' : 'Touch buttons', {'1.0': 'Slow', '1.6': 'Normal speed', '2.6': 'Fast'}[pick('speed')], pick('rudder') === 'auto' ? 'Automatic rudder' : 'Real rudder'];
+  $('optSummary').innerHTML = 'Your flight: ' + chips.map(c => `<span>${c}</span>`).join('');
+  $('btnStart').textContent = ex ? 'Start exploring ▶' : 'Start flight ▶';
+}
+document.querySelectorAll('#scrMenu input').forEach(el => el.addEventListener('change', refreshOpts));
+$('btnResetOpts').onclick = () => { OPT_NAMES.forEach(n => setPick(n, OPT_DEFAULTS[n])); refreshOpts(); };
+$('btnToMenu').onclick = () => show('scrMenu');
+$('btnLearn').onclick = () => { $('lessonPanel').hidden = false; $('lessonPanel').scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'start'}); };
+$('btnLessonGo').onclick = () => show('scrMenu');
+$('btnBackLesson').onclick = () => show('scrIntro');
+$('btnStart').onclick = () => {
+  settings.scenario = pick('scenario'); settings.mode = pick('mode');
+  settings.side[9] = pick('side9'); settings.side[27] = pick('side27');
+  settings.ctl = pick('ctl'); settings.invert = pick('pitch') === 'sim'; settings.rudAuto = pick('rudder') === 'auto'; TS = +pick('speed');
+  saveOpts(); newGame();
+};
+loadOpts();
+$('btnMenu').onclick = () => { if (G) G.running = false; closeModal(); show('scrMenu'); };
+$('btnRestart').onclick = () => newGame();
+$('btnPause').onclick = togglePause;
+$('dAgain').onclick = () => newGame();
+$('dMenu').onclick = () => { $('debrief').hidden = true; show('scrMenu'); };
+$('btnReplay').onclick = () => { if (G) G.replayStart = performance.now(); };
+
+function togglePause() {
+  if (!G || !G.running || !overlay.hidden) return;
+  G.paused = !G.paused;
+  $('pausedTag').hidden = !G.paused;
+  $('btnPause').textContent = G.paused ? 'Resume' : 'Pause';
+}
+
+/* ---------- modal ---------- */
+function openModal(html, variant) {
+  overlay.className = 'overlay' + (variant ? ' ' + variant : '');
+  modal.innerHTML = html; overlay.hidden = false;
+  for (const k in keys) keys[k] = false;
+  document.querySelectorAll('.ctl.on').forEach(b => b.classList.remove('on'));
+  const f = modal.querySelector('button:not([disabled])'); if (f) f.focus();
+}
+function closeModal() { overlay.hidden = true; modal.innerHTML = ''; }
+
+/* ---------- geometry ---------- */
+
+/* ---------- rounded turns ---------- */
+const TURN_R = 1600;                            // turn radius used to round the drawn pattern (feet)
+function roundPts(pts, R, closed) {
+  const n = pts.length, out = [], starts = [];
+  const at = i => pts[(i + n) % n], lerpA = (a, b, t) => (a == null || b == null) ? a : a + (b - a) * t;
+  for (let i = 0; i < n; i++) {
+    const P = pts[i];
+    if (!closed && (i === 0 || i === n - 1)) { out.push({x: P.x, y: P.y, alt: P.alt, leg: i}); continue; }
+    const A = at(i - 1), B = at(i + 1), ax = A.x - P.x, ay = A.y - P.y, bx = B.x - P.x, by = B.y - P.y, la = Math.hypot(ax, ay), lb = Math.hypot(bx, by);
+    const th = la && lb ? Math.acos(clamp((ax * bx + ay * by) / (la * lb), -1, 1)) : Math.PI;
+    if (th > Math.PI - .03) { out.push({x: P.x, y: P.y, alt: P.alt, leg: i}); continue; }
+    const t = Math.min(R / Math.tan(th / 2), la * .45, lb * .45);
+    const p1 = {x: P.x + ax / la * t, y: P.y + ay / la * t, alt: lerpA(P.alt, A.alt, t / la)};
+    const p2 = {x: P.x + bx / lb * t, y: P.y + by / lb * t, alt: lerpA(P.alt, B.alt, t / lb)};
+    starts[i] = {x: p1.x, y: p1.y};
+    for (let k = 0; k <= 10; k++) { const q = k / 10, m = 1 - q;
+      out.push({x: m * m * p1.x + 2 * m * q * P.x + q * q * p2.x, y: m * m * p1.y + 2 * m * q * P.y + q * q * p2.y, alt: lerpA(p1.alt, p2.alt, q), leg: q < .5 ? (i - 1 + n) % n : i}); }
+  }
+  return {out, starts};
+}
+function chevronsPath(c, sp, color) {
+  c.strokeStyle = color; c.lineWidth = 2.5;
+  let next = 30;
+  for (let i = 0, acc = 0; i < sp.length - 1; i++) {
+    const [ax, ay] = sp[i], [bx, by] = sp[i + 1], len = Math.hypot(bx - ax, by - ay); if (!len) continue;
+    while (next <= acc + len) { const t = (next - acc) / len, px = ax + (bx - ax) * t, py = ay + (by - ay) * t;
+      c.save(); c.translate(px, py); c.rotate(Math.atan2(by - ay, bx - ax)); c.beginPath(); c.moveTo(-5, -6); c.lineTo(3, 0); c.lineTo(-5, 6); c.stroke(); c.restore(); next += 52; }
+    acc += len;
+  }
+}
+
+/* ---------- flight physics ---------- */
+// Speed change (knots per second of sim time) = thrust - drag - gravity along the flight path.
+// Descending turns height into speed; climbing trades speed for height. Flaps add drag and lower the stall speed.
+const PHYS = {A: 3.59, B: 3.26e-4, C: 2.35e-3};
+const FLAP_DEG = [0, 10, 20, 30];
+function airAccel(p) {
+  const V = Math.max(p.spd, 30), fl = 1 + (p.flaps || 0) * .3 + .5 * Math.abs(p.ball || 0);
+  return PHYS.A * p.power - PHYS.B * fl * V * V - PHYS.C * (1 - p.power) * V - 0.1884 * p.vs / V;
+}
+const rk = d => settings.ctl === 'keys' ? (d === 'L' ? ' (N)' : ' (M)') : '';
+const stallSpeed = p => 48 - (p.flaps || 0) * 2.7;
+function setFlaps(d) {
+  if (!G || !G.plane || !G.running || !overlay.hidden) return;
+  const p = G.plane, t = clamp((p.flapsT || 0) + d, 0, 3);
+  if (t === (p.flapsT || 0)) return;
+  if (d > 0 && p.spd > 110 && !p.ground) { showWarn('Too fast for flaps. Slow below 110 knots first.', 'hint'); return; }
+  p.flapsT = t; showWarn(`Flaps ${FLAP_DEG[t]}°`, 'hint');
+}
+
+/* ---------- turn cue ---------- */
+function turnCue() {
+  const p = G && G.plane, g = G && G.geo;
+  if (G) G.nextEv = null;
+  if (!p || !g || p.ground || G.mode === 'checkride' || G.ended || !G.running) return null;
+  const u = U(p), v = V(p), sw = g.sw, sH = hdgOf(g.s), nsH = hdgOf({x: -g.s.x, y: -g.s.y});
+  const gs = Math.max(60, p.spd * 1.6878 * tsNow()), R = gs / (14 * RAD), t45 = R * Math.tan(22.5 * RAD);
+  let ev = null, leg = null;
+  switch (G.phase) {
+    case 'inbound': leg = g.entryHdg; ev = {dist: Math.hypot(p.x - g.M.x, p.y - g.M.y) - t45, hdg: g.dwHdg, dir: g.entryTurn, label: 'onto downwind'}; break;
+    case 'upwind': leg = g.rwHdg;
+      if (G.scenario === 'closed' || G.f.wentAround) ev = {dist: Math.max(L/2 + 100, L/2 + 2000 - R) - u, hdg: sH, dir: sw, label: 'onto crosswind', blocked: p.alt < TPA - 300, wait: 'Keep climbing: turn crosswind at 1,400 ft or higher'};
+      else ev = {dist: (L/2 + 800 - t45) - u, hdg: g.exitHdg, dir: sw, label: '45° to depart (or keep going straight)', blocked: p.alt < TPA - 100, wait: 'Keep climbing: turn at 1,700 ft'};
+      break;
+    case 'crosswind': leg = sH; ev = {dist: (D - R) - v, hdg: g.dwHdg, dir: sw, label: 'onto downwind'}; break;
+    case 'downwind': leg = g.dwHdg; ev = {dist: u - (-(L/2 + D) + R), hdg: nsH, dir: sw, label: 'onto base'}; break;
+    case 'base': leg = nsH; ev = {dist: v - R, hdg: g.rwHdg, dir: sw, label: 'onto final'}; break;
+    case 'final': leg = g.rwHdg; break;
+  }
+  if (ev) G.nextEv = Object.assign({deg: Math.round(Math.abs(angDiff(ev.hdg, leg != null ? leg : p.hdg)) / 5) * 5, gs}, ev);
+  if (ev && Math.abs(angDiff(p.hdg, ev.hdg)) > 10) {
+    if (ev.dist <= 0) return ev.blocked ? {stage: 'hold', main: 'Not yet', sub: ev.wait, dir: ev.dir}
+                                        : {stage: 'now', main: `Turn ${ev.dir} now`, sub: `${ev.label}, heading ${pad3(ev.hdg)}${settings.rudAuto ? '' : `, with ${ev.dir} rudder`}`, dir: ev.dir};
+    const secs = ev.dist / gs;
+    if (secs <= 4 && !ev.blocked) return {stage: 'ready', main: `Get ready to turn ${ev.dir}`, sub: `${ev.label} in ${Math.ceil(secs)}…`, dir: ev.dir, frac: 1 - secs / 4};
+  }
+  if (leg != null) {
+    const df = angDiff(leg, p.hdg), dir = df < 0 ? 'left' : 'right', turning = Math.abs(p.tr || 0) > 2;
+    if (Math.abs(df) > 8 && Math.abs(df) < 130) {
+      if (turning && Math.abs(df) <= 25) return {stage: 'now', main: 'Roll out now', sub: `level the wings on heading ${pad3(leg)}`, dir};
+      if (turning) return {stage: 'roll', main: `Keep turning ${dir}`, sub: `roll out on heading ${pad3(leg)}`, dir};
+      return {stage: 'roll', main: `Turn ${dir} to heading ${pad3(leg)}`, sub: `${LEG[G.phase]} heading`, dir};
+    }
+  }
+  return null;
+}
+function updateTurnDist(cue) {
+  const el = $('turnDist'), ev = G && G.nextEv;
+  const show = ev && ev.dist > 0 && !(cue && (cue.stage === 'now' || cue.stage === 'hold')) && overlay.hidden;
+  if (!show) { el.hidden = true; return; }
+  el.hidden = false; el.classList.toggle('right', ev.dir === 'right');
+  const nm = ev.dist / 6076;
+  $('tdDist').textContent = nm >= .1 ? nm.toFixed(1) : fmt(Math.round(ev.dist / 50) * 50);
+  $('tdUnit').textContent = nm >= .1 ? 'NM' : 'ft';
+  $('tdLabel').textContent = `to the ${ev.deg}° ${ev.dir} turn ${ev.label}`;
+  const secs = ev.dist / ev.gs;
+  $('tdTime').textContent = secs >= 60 ? `about ${Math.floor(secs / 60)} min ${Math.round(secs % 60)} s` : `about ${Math.ceil(secs)} s`;
+}
+function updateCue() {
+  const el = $('turnCue'), cue = overlay.hidden && !(G && G.paused) ? turnCue() : null;
+  updateTurnDist(cue);
+  const key = cue ? cue.stage + cue.main + cue.sub + cue.dir + Math.round((cue.frac || 0) * 20) : '';
+  if (G && key === G.cueKey) return; if (G) G.cueKey = key;
+  if (!cue) { el.hidden = true; return; }
+  el.hidden = false; el.className = `turncue ${cue.stage} ${cue.dir}`;
+  el.querySelector('.tc-main').textContent = cue.main; el.querySelector('.tc-sub').textContent = cue.sub;
+  const bar = el.querySelector('.tc-bar'); bar.hidden = cue.stage !== 'ready'; bar.firstElementChild.style.width = Math.round((cue.frac || 0) * 100) + '%';
+}
+
+function buildGeo(rw) {
+  const side = settings.side[rw], rwHdg = rw === 27 ? 270 : 90;
+  const d = vec(rwHdg), s = vec(side === 'L' ? rwHdg - 90 : rwHdg + 90);
+  const P = (u, v) => ({x: d.x * u + s.x * v, y: d.y * u + s.y * v});
+  const g = {rw, orw: rw === 27 ? 9 : 27, side, sw: side === 'L' ? 'left' : 'right', ow: side === 'L' ? 'right' : 'left', rwHdg, dwHdg: (rwHdg + 180) % 360, d, s, P};
+  g.T = P(-L/2, 0); g.M = P(0, D); g.A = P(-L/2, D); g.B = P(-(L/2 + D), D); g.F = P(-(L/2 + D), 0);
+  g.E = P(3000, D + 3000); g.S = P(6000, D + 6000); g.R = P(-L/2 + 2600, 0);
+  g.T0 = P(-L/2 + 150, 0); g.U = P(L/2 + 2000, 0); g.C = P(L/2 + 2000, D);
+  g.U2 = P(L/2 + 800, 0); g.X = P(L/2 + 800 + 8000, 8000); g.DE = P(L/2, 0);
+  g.entryHdg = hdgOf({x: -(d.x + s.x), y: -(d.y + s.y)});
+  g.entryTurn = angDiff(g.dwHdg, g.entryHdg) > 0 ? 'right' : 'left';
+  g.exitHdg = hdgOf({x: d.x + s.x, y: d.y + s.y});
+  g.exitDir = compass(g.exitHdg);
+  g.wrongExitDir = compass(hdgOf({x: d.x - s.x, y: d.y - s.y}));
+  g.inDir = compass(hdgOf(g.S));
+  const bp = [P(-L/2, 0), P(L/2, 0), {x:SEG_X, y:SEG_Y}, g.B, g.F, g.T0];
+  if (G.scenario === 'arrival') bp.push(g.S, g.M);
+  else if (G.scenario === 'explore') bp.push(g.S, g.M, g.U, g.C, P(L/2 + 4000, 3200));
+  else if (G.scenario === 'closed') bp.push(g.U, g.C);
+  else bp.push(g.U2, g.X);
+  const PAD = 1800;
+  g.box = {minx: Math.min(...bp.map(q => q.x)) - PAD, maxx: Math.max(...bp.map(q => q.x)) + PAD, miny: Math.min(...bp.map(q => q.y)) - PAD, maxy: Math.max(...bp.map(q => q.y)) + PAD};
+  // loop flown by the other airplanes (touch and go)
+  const lraw = [{x:g.T.x,y:g.T.y,alt:700},{x:g.U.x,y:g.U.y,alt:1300},{x:g.C.x,y:g.C.y,alt:1700},{x:g.A.x,y:g.A.y,alt:1700},{x:g.B.x,y:g.B.y,alt:1250},{x:g.F.x,y:g.F.y,alt:950}];
+  const lp = roundPts(lraw, TURN_R * .9, true).out;
+  let acc = 0; g.loop = [];
+  lp.forEach((a, i) => { const b = lp[(i + 1) % lp.length], len = Math.hypot(b.x - a.x, b.y - a.y); if (len < 1) return; g.loop.push({a: {p: a, alt: a.alt}, b: {p: b, alt: b.alt}, len, start: acc, leg: a.leg}); acc += len; });
+  g.loopLen = acc;
+  if (G.scenario === 'arrival') g.ghost = [{p:g.S},{p:g.E,label:'45° entry'},{p:g.M,label:'Join downwind at midfield'},{p:g.A,label:'Abeam the numbers'},{p:g.B,label:'Turn base'},{p:g.F,label:'Turn final'},{p:g.T,label:'Touch down'},{p:g.R}];
+  else if (G.scenario === 'closed') g.ghost = [{p:g.T0,label:'Take off'},{p:g.U,label:'Turn crosswind'},{p:g.C,label:'Turn downwind'},{p:g.A,label:'Abeam the numbers'},{p:g.B,label:'Turn base'},{p:g.F,label:'Turn final'},{p:g.T,label:'Touch down'},{p:g.R}];
+  else if (G.scenario === 'departure') g.ghost = [{p:g.T0,label:'Take off'},{p:g.U2,label:'Turn 45° after reaching 1,700 ft'},{p:g.X,label:'Depart'}];
+  else g.ghost = [];
+  g.ghostAlt = {arrival: [1900, 1700, 1700, 1700, 1300, 1000, 700, 700], closed: [700, 1400, 1700, 1700, 1300, 1000, 700, 700], departure: [700, 1700, 1700]}[G.scenario] || [];
+  g.hot = makeHotspots(g);
+  const gA = g.ghostAlt || [];
+  const rd = roundPts(g.ghost.map((q, i) => ({x: q.p.x, y: q.p.y, alt: gA[i] != null ? gA[i] : 700})), TURN_R, false);
+  g.ghostLine = rd.out; rd.starts.forEach((st, i) => { if (st && g.ghost[i].label) g.ghost[i].p = st; });
+  g.ribbon = roundPts([g.DE, g.U, g.C, g.B, g.F, g.T], TURN_R, false).out;
+  return g;
+}
+const U = p => p.x * G.geo.d.x + p.y * G.geo.d.y;   // along the runway, + in landing direction
+const V = p => p.x * G.geo.s.x + p.y * G.geo.s.y;   // sideways, + toward the pattern side
+
+/* ---------- new flight ---------- */
+function newGame() {
+  closeModal(); $('debrief').hidden = true;
+  const from = Math.round(((Math.random() < .5 ? 40 : 220) + Math.random() * 100) / 10) * 10;
+  const kt = 5 + Math.floor(Math.random() * 11);
+  const best = Math.cos((from - 90) * RAD) > Math.cos((from - 270) * RAD) ? 9 : 27;
+  G = {scenario: settings.scenario, mode: settings.mode, wind: {from, kt}, best, geo: null, plane: null, phase: 'brief',
+       t: 0, running: false, paused: false, f: {}, dw: {n:0, good:0}, st: {n:0, good:0}, radio: {n:0, ok:0, missed:[]},
+       conflicts: 0, lastConflict: -99, traffic: [], track: [], trackT: 0, warnT: {}, ended: false, coachKey: ''};
+  $('radioLog').innerHTML = '<li class="empty">Nobody has called yet.</li>';
+  $('iWind').textContent = 'Read the windsock';
+  $('btnExit').hidden = true; $('pausedTag').hidden = true; $('btnPause').textContent = 'Pause'; $('warn').hidden = true;
+  const sc = {arrival:'Arrive and land', closed:'Pattern from takeoff', departure:'Takeoff and depart', explore:'Explore the pattern'}[G.scenario];
+  const ex = G.scenario === 'explore';
+  $('flightChip').textContent = ex ? sc : `${sc}, ${G.mode[0].toUpperCase() + G.mode.slice(1)}`;
+  G.sel = null; G.hover = null; G.quiz = null;
+  G.ck = {on: false, pitch: 0, bank: 0}; G.coord = {n: 0, good: 0}; G.ap = null; G.prof = []; G.profT = 0; exitCockpit();
+  $('flightControls').hidden = ex; $('exploreBar').hidden = !ex; $('instPanel').hidden = ex; $('radioBox').hidden = ex;
+  $('coachCard').hidden = ex; $('btnPause').hidden = ex; renderInfo();
+  $('flightControls').classList.toggle('kbonly', settings.ctl === 'keys');
+  document.querySelector('.sim').classList.toggle('kb', settings.ctl === 'keys' && !ex);
+  $('btnKeys').hidden = ex || settings.ctl === 'buttons';
+  document.querySelectorAll('.kU').forEach(k => k.textContent = settings.invert ? 'S' : 'W');
+  document.querySelectorAll('.kD').forEach(k => k.textContent = settings.invert ? 'W' : 'S');
+  document.querySelectorAll('#flightControls kbd').forEach(k => { if (k.closest('.ctl')) k.hidden = settings.ctl === 'buttons'; });
+  show('scrSim'); updateCoach();
+  windCheck();
+}
+
+function windCheck() {
+  openModal(`<h2>Check the wind</h2>
+    <p>Find the windsock in the segmented circle on the map, beside the runway. The open end faces into the wind, and the tail streams the way the wind is blowing.</p>
+    <canvas id="sockMini" width="170" height="170" aria-label="Close-up of the windsock with north at the top"></canvas>
+    <p><strong>Which runway should you use to land or take off into the wind?</strong></p>
+    <div class="choices">
+      <button data-rw="9"><b class="num">1</b>Runway 9<small>Fly east, heading 090</small></button>
+      <button data-rw="27"><b class="num">2</b>Runway 27<small>Fly west, heading 270</small></button>
+    </div>`, 'peek');
+  drawMiniSock();
+  modal.querySelectorAll('[data-rw]').forEach(b => b.onclick = () => {
+    const pick = +b.dataset.rw;
+    G.f.rwOk = pick === G.best;
+    setupFlight();
+    windFeedback(pick);
+  });
+}
+
+function windFeedback(pick) {
+  const g = G.geo, w = G.wind;
+  const why = `The wind is from ${pad3(w.from)}° at ${w.kt} knots. Runway ${g.rw} points ${g.rw === 27 ? 'west (270°)' : 'east (090°)'}, so it puts the wind on your nose. A headwind means a slower groundspeed, a shorter takeoff roll, and a slower, easier landing.`;
+  const pat = `Runway ${g.rw} uses <strong>${g.sw} traffic</strong>: every turn in the pattern is to the ${g.sw}.`;
+  let body;
+  if (G.mode === 'checkride') body = `<h2>Runway selected</h2><p>Your choice is logged. The active runway today is Runway ${g.rw}.</p><p>${pat}</p>`;
+  else if (G.f.rwOk) body = `<p class="good">Correct, Runway ${g.rw}!</p><p>${why}</p><p>${pat}</p>`;
+  else body = `<p class="bad">Not quite: you picked Runway ${pick}.</p><p>${why}</p><p>${pat} We’ll use Runway ${g.rw}.</p>`;
+  openModal(body + `<div class="mrow"><button class="primary" id="mCont">Continue</button></div>`, 'peek');
+  $('mCont').onclick = () => {
+    closeModal();
+    if (G.scenario === 'explore') { renderInfo(); return; }
+    cockpitOn();
+    const kind = G.scenario === 'arrival' ? 'inbound' : G.scenario === 'closed' ? 'takeoffClosed' : 'takeoffDepart';
+    radioPrompt(kind, () => { G.running = true; updateCoach(); });
+  };
+}
+
+function setupFlight() {
+  const g = G.geo = buildGeo(G.best);
+  $('iWind').textContent = `Wind ${pad3(G.wind.from)}° at ${G.wind.kt} kt`;
+  if (G.scenario === 'explore') { G.plane = null; setPhase('explore'); renderInfo(); return; }
+  if (G.scenario === 'arrival') {
+    G.plane = {x:g.S.x, y:g.S.y, alt:2200, hdg:g.entryHdg, spd:95, vs:0, vsT:0, power:.83, ground:false};
+    setPhase('inbound');
+  } else {
+    G.plane = {x:g.T0.x, y:g.T0.y, alt:FIELD, hdg:g.rwHdg, spd:0, vs:0, vsT:0, power:0, ground:true};
+    setPhase('takeoff');
+  }
+  if (G.mode !== 'guided') {
+    const names = ['Piper 45T', 'Cirrus 82R'];
+    const starts = G.scenario === 'arrival' ? [8530, 23230] : [12500, 20500];
+    const n = G.mode === 'checkride' ? 2 : 1;
+    for (let i = 0; i < n; i++) { const ai = {name:names[i], pos: starts[i] % g.loopLen, lastSeg:null}; placeAI(ai); ai.lastSeg = ai.seg; G.traffic.push(ai); }
+  }
+}
+
+function setPhase(ph) {
+  G.phase = ph;
+  if (ph === 'final') G.f.finalReached = true;
+  updateCoach();
+}
+
+/* ---------- radio ---------- */
+function buildCall(kind) {
+  const g = G.geo, A = APT, rw = g.rw, o = g.orw, sw = g.sw, ow = g.ow, pre = `${A} traffic, ${ME}, `;
+  const noName = `It’s missing the airport name at the end. Pilots may tune in partway through a call, and nearby airports can share the same frequency, so say the airport name at the start and the end.`;
+  const wrongRw = `That’s the wrong runway. With today’s wind, Runway ${rw} is in use.`;
+  switch (kind) {
+    case 'inbound': return {label:'10 miles out',
+      prompt:`You’re about 10 miles ${g.inDir} of ${A}, coming in to land. Tell the other pilots where you are and what you plan to do.`,
+      note:'In real life you make this call about 10 miles out. The sim starts you closer so you reach the pattern sooner.',
+      correct:`${pre}10 miles ${g.inDir}, inbound for landing runway ${rw}, ${A}.`,
+      wrongs:[[`${pre}10 miles ${g.inDir}, inbound for landing runway ${o}, ${A}.`, wrongRw],
+              [`${A} tower, ${ME}, 10 miles ${g.inDir}, inbound for landing runway ${rw}.`, `${A} has no control tower. At a non-towered airport you’re talking to other pilots, so you say “${A} traffic” and end with the airport name.`],
+              [`${pre}10 miles ${g.inDir}, inbound for landing runway ${rw}.`, noName]]};
+    case 'downwind': {
+      const lead = G.scenario === 'arrival' && !G.f.wentAround ? 'entering ' : '';
+      return {label:'Downwind',
+      prompt: G.scenario === 'arrival' && !G.f.wentAround ? 'You’re turning onto the downwind leg from the 45° entry. What do you say?' : 'You’re turning onto the downwind leg. What do you say?',
+      correct:`${pre}${lead}${sw} downwind runway ${rw}, full stop, ${A}.`,
+      wrongs:[[`${pre}${lead}${ow} downwind runway ${rw}, full stop, ${A}.`, `Runway ${rw} uses ${sw} traffic, so this is a ${sw} downwind.`],
+              [`${pre}${lead}${sw} downwind runway ${o}, full stop, ${A}.`, wrongRw],
+              [`${pre}${lead}${sw} downwind runway ${rw}, full stop.`, noName]]}; }
+    case 'base': return {label:'Base',
+      prompt:'You’re turning onto the base leg. What do you say?',
+      correct:`${pre}turning ${sw} base runway ${rw}, full stop, ${A}.`,
+      wrongs:[[`${pre}turning final runway ${rw}, full stop, ${A}.`, 'You’re turning onto base, not final yet. Naming the wrong leg makes other pilots look in the wrong place.'],
+              [`${pre}turning ${sw} base runway ${o}, full stop, ${A}.`, wrongRw],
+              [`${pre}turning ${sw} base runway ${rw}, full stop.`, noName]]};
+    case 'final': return {label:'Final',
+      prompt:'You’re turning final, lined up with the runway. What do you say?',
+      correct:`${pre}turning final runway ${rw}, full stop, ${A}.`,
+      wrongs:[[`${pre}turning ${sw} base runway ${rw}, full stop, ${A}.`, 'You’re turning final now. Base was the leg before this one.'],
+              [`${pre}turning final runway ${o}, full stop, ${A}.`, wrongRw],
+              [`${pre}turning final runway ${rw}, full stop.`, noName]]};
+    case 'clear': return {label:'Clear of the runway',
+      prompt:'You’ve taxied past the yellow hold-short lines onto the taxiway. Let everyone know the runway is free.',
+      correct:`${pre}clear of runway ${rw} at ${G.f.exitTwy || 'Alpha'}, ${A}.`,
+      wrongs:[[`${pre}clear of runway ${o} at ${G.f.exitTwy || 'Alpha'}, ${A}.`, `You landed on Runway ${rw}, not Runway ${o}.`],
+              [`${pre}departing runway ${rw}, ${A}.`, 'You just landed and taxied off. “Clear of runway” tells others the runway is free to use.'],
+              [`${pre}clear of runway ${rw} at ${G.f.exitTwy || 'Alpha'}.`, noName]]};
+    case 'takeoffClosed': return {label:'Takeoff (staying in the pattern)',
+      prompt:'You’re lined up on the runway, ready to take off and fly the pattern. What do you say?',
+      correct:`${pre}departing runway ${rw}, remaining in the pattern, ${A}.`,
+      wrongs:[[`${pre}departing runway ${rw}, departing to the ${g.exitDir}, ${A}.`, 'You’re staying to fly the pattern, so say “remaining in the pattern.”'],
+              [`${pre}departing runway ${o}, remaining in the pattern, ${A}.`, wrongRw],
+              [`${pre}departing runway ${rw}, remaining in the pattern.`, noName]]};
+    case 'takeoffDepart': return {label:'Takeoff (leaving the area)',
+      prompt:`You’re lined up on the runway, ready to take off and leave the area. You’ll depart with a 45° ${sw} turn. What do you say?`,
+      correct:`${pre}departing runway ${rw}, departing to the ${g.exitDir}, ${A}.`,
+      wrongs:[[`${pre}departing runway ${rw}, departing to the ${g.wrongExitDir}, ${A}.`, `A departure turn goes the same way as the pattern. Runway ${rw} uses ${sw} traffic, so you turn ${sw}, toward the ${g.exitDir}.`],
+              [`${pre}departing runway ${o}, departing to the ${g.exitDir}, ${A}.`, wrongRw],
+              [`${pre}departing runway ${rw}, departing to the ${g.exitDir}.`, noName]]};
+  }
+}
+
+function radioPrompt(kind, then) {
+  const c = buildCall(kind);
+  const opts = shuffle([{text:c.correct, ok:true}, ...c.wrongs.map(w => ({text:w[0], why:w[1]}))]);
+  const head = `<div class="radiohead"><span>Make your radio call</span><span>CTAF 122.8</span></div>`;
+  openModal(`${head}<h2>${c.prompt}</h2><p class="note">Tip: press 1 to 4 on the keyboard to choose.</p><div class="calls">${opts.map((o, i) => `<button data-i="${i}"><b class="num">${i + 1}</b>“${o.text}”</button>`).join('')}</div>`);
+  modal.querySelectorAll('.calls button').forEach(b => b.onclick = () => {
+    const o = opts[+b.dataset.i];
+    G.radio.n++; if (o.ok) G.radio.ok++; else G.radio.missed.push(c.label);
+    logRadio('You', o.text, true);
+    let fb;
+    const order = 'Every CTAF call follows the same order: who you’re calling, who you are, where you are, what you’re doing, and the airport name again.';
+    if (G.mode === 'checkride') fb = `<h2>Call sent</h2><p>Your radio call is logged for the debrief.</p>`;
+    else if (o.ok) fb = `<p class="good">Good call!</p><p>${order}</p>${c.note ? `<p>${c.note}</p>` : ''}`;
+    else fb = `<p class="bad">Not quite.</p><p>${o.why}</p><p>The correct call:</p><blockquote>“${c.correct}”</blockquote>`;
+    openModal(`${head}${fb}<div class="mrow"><button class="primary" id="mCont">Continue flying</button></div>`);
+    $('mCont').onclick = () => { closeModal(); then && then(); };
+  });
+}
+
+function logRadio(who, text, me) {
+  const ol = $('radioLog');
+  const empty = ol.querySelector('.empty'); if (empty) empty.remove();
+  const li = document.createElement('li'); if (me) li.className = 'me';
+  li.innerHTML = `<b>${who}</b><span></span>`; li.querySelector('span').textContent = text;
+  ol.prepend(li);
+  while (ol.children.length > 6) ol.lastChild.remove();
+}
+
+/* ---------- checklist ---------- */
+function openChecklist() {
+  G.f.checklistShown = true;
+  const items = ['Fuel selector: Both', 'Mixture: Rich', 'Carburetor heat: On', 'Seat belts: Fastened', 'Landing light: On'];
+  let k = 0;
+  openModal(`<h2>Pre-landing checklist</h2>
+    <p>Tap each item in order as you check it. ${G.mode === 'guided' ? 'Pilots run this on downwind so the airplane is ready before they start down.' : ''}</p>
+    <ol class="checklist">${items.map((t, i) => `<li><button data-i="${i}" ${i ? 'disabled' : ''}><span class="box"></span>${t}</button></li>`).join('')}</ol>
+    <p class="note">This is a typical small-trainer checklist. Real pilots always use their own airplane’s checklist.</p>
+    <div class="mrow"><button class="primary" id="mCont" disabled>Checklist complete</button></div>`);
+  const btns = [...modal.querySelectorAll('.checklist button')];
+  btns.forEach((b, i) => b.onclick = () => {
+    if (i !== k) return;
+    b.classList.add('done'); b.disabled = true; k++;
+    if (k < btns.length) { btns[k].disabled = false; btns[k].focus(); }
+    else { $('mCont').disabled = false; $('mCont').focus(); }
+  });
+  $('mCont').onclick = () => { G.f.checklist = true; closeModal(); };
+}
+
+/* ---------- warnings ---------- */
+let warnTimer;
+function showWarn(msg, kind) {
+  const el = $('warn'); el.textContent = msg; el.className = 'warn ' + kind; el.hidden = false;
+  clearTimeout(warnTimer); warnTimer = setTimeout(() => el.hidden = true, 2800);
+}
+function throttled(key, every) { const last = G.warnT[key]; if (last != null && G.t - last < every) return false; G.warnT[key] = G.t; return true; }
+function inGrace() { return !!G && G.t < (G.graceUntil || 0); }
+function hint(msg, key, every = 4) { if (!G || G.mode === 'checkride' || inGrace()) return; if (throttled(key, every)) showWarn(msg, 'hint'); }
+function caution(msg, key, every = 3) { if (throttled(key, every)) showWarn(msg, 'alert'); }
+function say(msg) { if (G.mode !== 'checkride') showWarn(msg, 'good'); }
+
+/* ---------- coach ---------- */
+function coachContent() {
+  if (!G) return {t:'', x:'', w:''};
+  const g = G.geo, ph = G.phase, leg = LEG[ph] || '';
+  if (ph === 'brief') return {t:'Before you fly', x:'Check the wind and pick your runway.', w:''};
+  if (G.mode === 'checkride') return {t:leg, x:'Checkride in progress: no hints. Fly it like the examiner is watching.', w:''};
+  if (G.mode === 'practice') return {t:leg, x:'Fly this leg on your own. Hints pop up if something drifts. Watch for the other airplane and listen to its radio calls.', w:''};
+  const sw = g.sw;
+  switch (ph) {
+    case 'inbound': return {t:'Fly the 45° entry', x:`Descend to 1,700 ft (▼), then press Level off. Follow the yellow line to the middle of the downwind leg, then turn ${g.entryTurn} to fly heading ${pad3(g.dwHdg)}, parallel to the runway.`, w:'Joining at a 45° angle lets you see the whole pattern and spot other airplanes before you merge in.'};
+    case 'downwind':
+      if (!G.f.abeamPassed) return {t:'Downwind', x:`Hold 1,700 ft and stay parallel to the runway, about ¾ mile out. Finish the pre-landing checklist. Hold ${sw === 'left' ? 'Z' : 'C'} to look ${sw} and see the runway.`, w:'Downwind is your setup leg. A steady altitude makes you predictable to other pilots.'};
+      if (!G.f.powerOk) return {t:'Abeam the numbers', x:`Look ${sw} (hold ${sw === 'left' ? 'Z' : 'C'}): the runway numbers are off your wingtip. Reduce power to about 1,500 RPM (− Power), lower 10° of flaps (V), and start down about 500 ft per minute (▼). Watch your airspeed: descending makes it build.`, w:'Starting down here gives you a steady descent all the way to the runway.'};
+      return {t:'Getting ready for base', x:`Keep descending. When the end of the runway is about 45° behind your ${sw} wingtip, turn ${sw} onto base.`, w:'Turning at 45° keeps the pattern the same size every time, so base and final aren’t rushed.'};
+    case 'base': return {t:'Base', x:`Lower flaps to 20° (V) and keep descending. Start your ${sw} turn to final a little before you reach the runway centerline.`, w:'Leading the turn keeps you from overshooting, which means sailing past the centerline.'};
+    case 'final': {
+      const agl = G.plane ? G.plane.alt - FIELD : 999;
+      if (G.plane && !G.plane.ground && agl < 30) return {t:'Flare!', x:'Flare now: ease the nose up (hold ▲) to slow your descent, and let the wheels settle onto the runway.', w:'Flaring turns a firm arrival into a gentle touchdown.'};
+      return {t:'Final: land the airplane', x:'Find the 4 PAPI lights left of the runway. Two white and two red means you’re on the 3° glidepath. Line up with the centerline, hold 65 to 75 knots, and aim at the big white aiming-point stripes. Not working out? Go around (G).', w:'More white means too high, so reduce power. More red means too low, so add power. A steady approach makes the landing easy.'}; }
+    case 'rollout': return {t:'Landing roll', x:'Touchdown! The airplane slows to taxi speed (25 knots). Then turn off at the next taxiway: watch for the yellow exit signs. Steer with the rudder, or press Exit runway (X) to taxi off automatically.', w:'You’re clear of the runway once the whole airplane is past the yellow hold-short lines. Clear quickly so the next airplane can land.'};
+    case 'exiting': return {t:'Taxi clear', x:`Turning off at taxiway ${G.f.exitTwy || 'Alpha'}. Keep rolling until you’re past the hold-short lines.`, w:'The red sign marks the runway holding position. On the way out to take off, you stop at it and check for traffic before entering the runway.'};
+    case 'takeoff': return {t:'Takeoff roll', x:'Add full power (+ Power, or hold E). Steer with the rudder: at full power the airplane pulls left, so hold right rudder to stay on the centerline. When you reach 55 knots, press ▲ to lift off.', w:'About 55 knots is when a small trainer like this is ready to fly.'};
+    case 'upwind':
+      if (G.scenario === 'closed' || G.f.wentAround) return {t:'Upwind', x:`Climb straight ahead at full power, about 700 ft per minute (around 75 knots). Climbing steeper will bleed off airspeed. Turn ${sw} onto crosswind only after you’re past the end of the runway and at least 1,400 ft (within 300 ft of pattern altitude).`, w:'Climbing first keeps you from turning low and slow, and keeps your path where other pilots expect it.'};
+      return {t:'Climb out', x:`Climb straight out. Once you’re past the end of the runway and at 1,700 ft, either keep going straight or turn 45° to the ${sw}, the same way as the pattern.`, w:'Leaving in the direction of the pattern keeps you clear of airplanes flying in it and joining it.'};
+    case 'crosswind': return {t:'Crosswind', x:`Keep climbing to 1,700 ft. When you’re about ¾ mile from the runway, turn ${sw} onto downwind (heading ${pad3(g.dwHdg)}).`, w:'Crosswind carries you out to the right spacing for downwind.'};
+    case 'exit': return {t:'Departing', x:'Keep climbing and fly away from the airport. Nice work!', w:''};
+  }
+  return {t:leg, x:'', w:''};
+}
+function updateCoach() {
+  const c = coachContent(), key = c.t + '|' + c.x;
+  if (G && key === G.coachKey) return;
+  if (G) G.coachKey = key;
+  $('coachTitle').textContent = c.t; $('coachText').textContent = c.x;
+  $('coachWhy').hidden = !c.w; $('coachWhy').textContent = c.w ? 'Why: ' + c.w : '';
+  if (!G || !G.plane) $('legTag').textContent = G ? (LEG[G.phase] || '') : ''; else if (G) G.hudKey = '';
+}
+
+/* ---------- simulation ---------- */
+function update(dt) {
+  const p = G.plane, g = G.geo;
+  G.t += dt;
+  const turn = (keys.left ? -1 : 0) + (keys.right ? 1 : 0);
+  if (keys.pUp) p.power = Math.min(1, p.power + .4 * dt);
+  if (keys.pDown) p.power = Math.max(0, p.power - .4 * dt);
+
+  // rudder and yaw: aileron input (turn keys) banks the airplane; the rudder yaws the nose.
+  // Ailerons alone cause adverse yaw (the nose swings the wrong way) and slide the ball.
+  // At high power and low speed the airplane pulls left (P-factor), so it needs right rudder.
+  const rudKey = (keys.rudL ? -1 : 0) + (keys.rudR ? 1 : 0);
+  p.ail = (p.ail || 0) + clamp(turn - (p.ail || 0), -4 * dt, 4 * dt);
+  const pf = -2 * p.power * clamp((90 - p.spd) / 45, 0, 1) * (p.ground ? (p.spd > 3 ? 1 : 0) : (p.vs > 100 ? 1 : .4));
+  const rudT = settings.rudAuto && !p.ground ? clamp(p.ail - pf / 3, -1, 1) : rudKey;
+  p.rud = (p.rud || 0) + clamp(rudT - (p.rud || 0), -4 * dt, 4 * dt);
+
+  if (p.ground) {
+    if (G.phase === 'takeoff') {
+      p.spd += clamp(p.power * 82 - p.spd, -6 * dt, 9 * dt);
+      if (keys.up) {
+        if (p.spd >= 55) { p.ground = false; p.alt = FIELD + 2; p.vs = 500; p.vsT = 650; setPhase('upwind'); say('Liftoff! Keep climbing straight ahead.'); }
+        else hint('Keep rolling: wait for 55 knots before you lift off.', 'roll', 3);
+      }
+      if (p.ground && p.spd > 60) hint('You have flying speed. Press ▲ to lift off.', 'rotate', 3);
+      if (p.power < .3 && G.t > 3) hint('Add full power to start the takeoff roll (+ Power).', 'pow0', 5);
+    } else if (G.phase === 'rollout') {
+      p.power = 0; p.spd = Math.max(TAXI_KT, p.spd - 7 * dt);       // slow to taxi speed after landing
+      if (U(p) > L/2 - 150) p.spd = Math.min(p.spd, 3);
+      if (p.spd <= TAXI_KT + 2) { $('btnGA').hidden = true; $('btnExit').hidden = false; }
+    } else if (G.phase === 'exiting') {          // automatic taxi off the runway along the chosen exit
+      G.exitT += dt; p.power = 0; p.spd = TAXI_KT;
+      const tg = G.exitPath && G.exitPath[0];
+      if (tg) { const want = hdgOf({x: tg.x - p.x, y: tg.y - p.y}); p.hdg = (p.hdg + clamp(angDiff(want, p.hdg), -45 * dt, 45 * dt) + 360) % 360;
+        if (Math.hypot(tg.x - p.x, tg.y - p.y) < 25) G.exitPath.shift(); }
+    }
+  } else {
+    p.flaps = (p.flaps || 0) + clamp((p.flapsT || 0) - (p.flaps || 0), -.7 * dt, .7 * dt);
+    const kT = tsNow() / 2.6;                       // slower sim speeds turn proportionally slower, so turns keep the same size
+    p.tr = (p.tr || 0) + clamp(turn * 14 * kT - (p.tr || 0), -45 * kT * dt, 45 * kT * dt);
+    p.yr = p.tr + (3 * (p.rud - p.ail) + pf) * kT;
+    p.hdg = (p.hdg + p.yr * dt + 360) % 360;
+    p.ball = (p.ball || 0) + clamp(clamp((p.ail - p.rud) - pf / 3, -1.2, 1.2) - (p.ball || 0), -3 * dt, 3 * dt);
+    if (!inGrace()) { G.coord.n++; if (Math.abs(p.ball) < .35) G.coord.good++; }
+    if (Math.abs(p.ball) > .55) hint(`Step on the ball: add ${p.ball < 0 ? 'left' : 'right'} rudder${rk(p.ball < 0 ? 'L' : 'R')}.`, 'ball', 4);
+    if (keys.up) p.vsT = Math.min(1000, p.vsT + 700 * dt);
+    if (keys.down) p.vsT = Math.max(-1200, p.vsT - 700 * dt);
+    if (G.ck.on && G.phase === 'final' && p.alt - FIELD < 30) {          // flare zone
+      if (keys.up) { p.vsT += 1400 * dt; p.flare = Math.min(1, (p.flare || 0) + 1.5 * dt); }
+      p.vsT = Math.min(p.vsT, -60);
+    }
+    const vS = stallSpeed(p);
+    if (p.spd < vS) { p.vsT = Math.min(p.vsT, -600); caution('Stall! Lower the nose and add power.', 'stall', 2.5); }
+    else if (p.spd < vS + 6) caution('Stall warning! Lower the nose or add power.', 'stallw', 3);
+    if (Math.abs(p.ball) > .5 && p.spd < vS + 8) caution('Uncoordinated and slow: spin danger! Center the ball and lower the nose.', 'spin', 3);
+    p.vs += clamp(p.vsT - p.vs, -1500 * dt, 1500 * dt);
+    const acc = airAccel(p) * tsNow();
+    p.spd = Math.max(30, p.spd + acc * dt);
+    G.trend = (G.trend || 0) * .9 + acc * .1;
+    if (p.spd > 163) caution('Overspeed! Reduce power and raise the nose.', 'vne', 2.5);
+    else if (p.spd > 129) caution(`Fast: ${Math.round(p.spd)} knots and building. Reduce power or level off.`, 'vno', 4);
+    if ((p.flaps || 0) > .5 && p.spd > 110) caution('Too fast for flaps! Slow down or raise the flaps (R).', 'vfe', 4);
+    p.alt += p.vs * tsNow() * dt / 60;
+  }
+  if (p.ground) {
+    p.ball = 0; p.yr = 0;
+    if ((G.phase === 'takeoff' || G.phase === 'rollout') && p.spd > 2) {      // steer on the ground with the rudder
+      p.yr = p.rud * (p.spd < TAXI_KT + 5 ? 28 : 10) + (settings.rudAuto ? 0 : pf);
+      p.hdg = (p.hdg + p.yr * dt + 360) % 360;
+      const lat = V(p), off = angDiff(p.hdg, g.rwHdg);
+      if (G.phase === 'takeoff') G.f.toMaxOff = Math.max(G.f.toMaxOff || 0, Math.abs(lat));
+      if (Math.abs(off) > 2 && (G.phase === 'takeoff' || p.spd > 25)) hint(off < 0 ? `Right rudder${rk('R')}! The airplane is pulling left.` : `Left rudder${rk('L')}! Keep it straight down the centerline.`, 'gsteer', 2.5);
+      if (Math.abs(lat) > RW3 / 2 + 10 && !onPavement(p.x, p.y)) { endFlight('runoff'); return; }
+    }
+  }
+  if (G.ck.on) {
+    const tp = p.ground ? 0 : clamp(p.vs / 170, -6, 8) + (p.flare || 0) * 6;
+    G.ck.pitch += clamp(tp - G.ck.pitch, -10 * dt, 10 * dt);
+    const tb = p.ground ? 0 : (p.tr || 0) / (14 * tsNow() / 2.6) * 22;
+    G.ck.bank += clamp(tb - G.ck.bank, -40 * dt, 40 * dt);
+    const tl = keys.lookL ? -80 : keys.lookR ? 80 : 0;
+    G.ck.look = (G.ck.look || 0) + clamp(tl - (G.ck.look || 0), -260 * dt, 260 * dt);
+    if (!p.ground && G.phase === 'final') { G.profT += dt; if (G.profT >= .1) { G.profT = 0; G.prof.push({u: U(p), agl: p.alt - FIELD}); } }
+  }
+  const fps = p.spd * 1.6878 * tsNow();
+  p.x += Math.sin(p.hdg * RAD) * fps * dt; p.y += Math.cos(p.hdg * RAD) * fps * dt;
+  if (p.ground) p.alt = FIELD;
+  if (p.ground && (G.phase === 'rollout' || G.phase === 'exiting') && p.y > AP.HOLD_Y + 30 && !G.f.clearAsked) {   // whole airplane past the hold-short lines
+    G.f.clearAsked = true; p.spd = 0; if (!G.f.exitTwy) G.f.exitTwy = nearestCon(p.x, p.y).name;
+    $('btnExit').hidden = true; radioPrompt('clear', () => endFlight('complete')); return;
+  }
+
+  G.trackT += dt;
+  if (G.trackT >= .2) { G.trackT = 0; G.track.push({x:p.x, y:p.y}); }
+
+  if (!p.ground && p.alt <= FIELD && p.vs < 0) { touchdown(); return; }
+  if (!p.ground && p.alt < FIELD) p.alt = FIELD;
+  updateTraffic(dt);
+  checkPhase();
+}
+
+function joinedDownwind(u, v, p) {
+  return v > 2300 && v < 7200 && Math.abs(angDiff(p.hdg, G.geo.dwHdg)) < 30 && Math.abs(u) < 10000;
+}
+function enterDownwind() {
+  setPhase('downwind'); G.dwStart = G.t;
+  radioPrompt('downwind', () => { G.checklistDue = G.t + .6; });
+}
+
+function checkPhase() {
+  const p = G.plane, g = G.geo, u = U(p), v = V(p), agl = p.alt - FIELD;
+  const hs = Math.sin(p.hdg * RAD) * g.s.x + Math.cos(p.hdg * RAD) * g.s.y;   // >0 = heading toward pattern side
+  const dist = Math.hypot(p.x, p.y);
+  if (!p.ground) {
+    if (agl < 350 && !['final','base','upwind'].includes(G.phase)) caution('Too low! Climb!', 'low', 3);
+    if (G.phase !== 'exit' && outside(p, 0)) caution('You’re leaving the area. Turn back toward the airport.', 'far', 4);
+    if (G.phase !== 'exit' && outside(p, 3500)) { endFlight('left'); return; }
+  }
+  switch (G.phase) {
+    case 'inbound':
+      if (G.f.entryHdg == null && v < D + 2200) G.f.entryHdg = p.hdg;
+      if (joinedDownwind(u, v, p)) {
+        G.f.entry = {angleOk: G.f.entryHdg != null && Math.abs(angDiff(G.f.entryHdg, g.entryHdg)) <= 25, altOk: Math.abs(p.alt - TPA) <= 150, midOk: Math.abs(u) <= 2500};
+        enterDownwind(); break;
+      }
+      if (p.alt > TPA + 150 && Math.hypot(p.x - g.M.x, p.y - g.M.y) < 5000) hint('Descend! Be at 1,700 ft before you join downwind.', 'desc', 4);
+      if (v < D - 1500) hint(`Turn ${g.entryTurn} onto downwind: fly heading ${pad3(g.dwHdg)}.`, 'turnDW', 4);
+      break;
+    case 'crosswind':
+      if (joinedDownwind(u, v, p)) { G.f.dwAlt = Math.abs(p.alt - TPA) <= 150; enterDownwind(); break; }
+      if (p.alt < TPA - 150) hint('Keep climbing to pattern altitude, 1,700 ft.', 'xwclimb', 6);
+      if (v > 7200) hint(`Turn ${g.sw} onto downwind now: heading ${pad3(g.dwHdg)}.`, 'xwfar', 4);
+      if (v < -1500) hint(`Wrong side! Runway ${g.rw} uses ${g.sw} traffic. Turn around toward the pattern side.`, 'xwwrong', 4);
+      break;
+    case 'downwind':
+      if (!G.f.abeamPassed) {
+        if (!inGrace()) { G.dw.n++; if (Math.abs(p.alt - TPA) <= 100) G.dw.good++; }
+        if (p.alt < TPA - 100) hint('Too low on downwind! Climb back to 1,700 ft.', 'dwlow', 4);
+        if (p.alt > TPA + 100) hint('Too high on downwind! Descend to 1,700 ft.', 'dwhigh', 4);
+      }
+      if (v < 2300) hint('Too close to the runway. Downwind should be about ½ to 1 mile out.', 'dwclose', 5);
+      if (v > 7000) hint('Too wide. Move closer: about ½ to 1 mile from the runway.', 'dwwide', 5);
+      if (G.checklistDue && G.t >= G.checklistDue && !G.f.checklistShown) { openChecklist(); break; }
+      if (!G.f.abeamPassed && u < -L/2) { G.f.abeamPassed = true; say('Abeam the numbers!'); updateCoach(); }
+      if (G.f.abeamPassed && !G.f.powerOk && u > -L/2 - 3800 && p.power <= .5 && p.vs <= -150) { G.f.powerOk = true; updateCoach(); }
+      if (G.f.abeamPassed && !G.f.powerOk && u < -L/2 - 2000) hint('Reduce power and start down: you’ve passed the numbers.', 'pwr', 5);
+      if (u < -(L/2 + D) - 2000) hint(`Turn ${g.sw} onto base now.`, 'baseNow', 4);
+      if (hs > .6) hint(`Wrong way! The runway is on your ${g.sw}.`, 'dwwrong', 4);
+      if (-hs > .7 && G.t - G.dwStart > 3) { G.f.baseU = u; setPhase('base'); radioPrompt('base'); }
+      break;
+    case 'base':
+      if (v < -350) { G.f.overshoot = true; hint('Overshooting final! Turn more toward the runway.', 'over', 4); }
+      if (agl < 250) caution('Too low! Add power and level off.', 'baselow', 3);
+      if (Math.abs(angDiff(p.hdg, g.rwHdg)) < 30 && Math.abs(v) < 1600) { setPhase('final'); radioPrompt('final', enterCockpit); }
+      break;
+    case 'final': {
+      const toTh = -L/2 - u, pp = papi();
+      if (G.ck.on && !p.ground && agl > 15 && agl < 700 && toTh > -800 && !inGrace()) {
+        G.ap.n++; if (pp.white >= 1 && pp.white <= 3) G.ap.gp++;
+        if (Math.abs(v) <= 40) G.ap.cl++;
+        if (p.spd >= 62 && p.spd <= 80) G.ap.spd++;
+      }
+      if (v < -350) G.f.overshoot = true;
+      if (agl > 40 && toTh > 300) {
+        if (pp.white >= 3) hint(pp.white === 4 ? 'Too high! (4 white) Reduce power and descend.' : 'A little high (3 white). Descend a bit more.', 'phigh', 4);
+        else if (pp.white <= 1) hint(pp.white === 0 ? 'Too low! (4 red) Add power and level off.' : 'A little low (3 red). Add a little power.', 'plow', 4);
+      }
+      if (Math.abs(v) > 40 && agl > 5) hint(`Line up with the centerline! Turn ${(v > 0) === (g.sw === 'left') ? 'right' : 'left'}.`, 'fline', 3);
+      if (agl > 20) { if (p.spd < 62) hint('Too slow! Add a little power.', 'fslow', 4); else if (p.spd > 80) hint('Too fast! Reduce power.', 'ffast', 4); }
+      if (agl < 200 && p.vs < -1000) caution('Sink rate! Slow your descent.', 'sink', 3);
+      if (G.ck.on && agl < 25 && G.mode === 'guided' && !G.f.flareMsg) { G.f.flareMsg = true; showWarn('Flare now: ease the nose up (hold ▲)', 'good'); }
+      if (u > -L/2 + 1800 && agl > 60) hint('Too far down the runway to land. Go around! (G)', 'ga', 4);
+      if (u > L/2 + 800) endFlight('missed');
+      break; }
+    case 'upwind': {
+      const dev = Math.abs(angDiff(p.hdg, g.rwHdg));
+      if (G.scenario === 'closed' || G.f.wentAround) {
+        if (dev > 20) {
+          G.f.xw = {past: u > L/2, alt: p.alt >= TPA - 305, side: hs > 0};
+          setPhase('crosswind');
+          if (!G.f.xw.side) hint(`Wrong way! Runway ${g.rw} uses ${g.sw} traffic, so turn ${g.sw}.`, 'xwside', 4);
+          else if (!G.f.xw.past || !G.f.xw.alt) hint('That turn came early. Wait until you’re past the runway end and at 1,400 ft or higher.', 'xwearly', 4);
+        } else if (u > L/2 && p.alt >= TPA - 300) hint(`Now you can turn ${g.sw} onto crosswind.`, 'xwnow', 8);
+      } else {
+        if (dev > 20) { G.f.dep = {past: u > L/2, alt: p.alt >= TPA - 100, side: hs > 0}; setPhase('exit');
+          if (!G.f.dep.side) hint(`That’s the wrong direction. Runway ${g.rw} uses ${g.sw} traffic, so depart to the ${g.sw}.`, 'depside', 4); }
+        else if (u > L/2 + 7000 && p.alt >= TPA - 100) { G.f.dep = {past:true, alt:true, side:true}; setPhase('exit'); }
+        else if (u > L/2 && p.alt >= TPA - 100) hint(`At pattern altitude. Keep going straight or turn 45° ${g.sw}.`, 'depnow', 8);
+      }
+      if (p.vsT < 300 && p.alt < TPA - 300) hint('Keep climbing! Hold ▲.', 'climb', 6);
+      break; }
+    case 'exit':
+      if (dist > 11500 || outside(p, 0)) {
+        const dev = Math.abs(angDiff(p.hdg, g.rwHdg));
+        G.f.depShape = dev <= 15 ? 'straight' : (dev >= 25 && dev <= 65 && hs > .15) ? '45' : (hs > .15 ? 'other' : 'wrong');
+        endFlight('complete');
+      }
+      break;
+  }
+}
+
+function touchdown() {
+  const p = G.plane, g = G.geo, u = U(p), v = V(p);
+  const onRw = Math.abs(v) <= (G.ck.on ? RW3 / 2 + 15 : RW_W/2 + 40) && u >= -L/2 - 60 && u <= L/2;
+  const aligned = Math.abs(angDiff(p.hdg, g.rwHdg)) < 35;
+  p.alt = FIELD;
+  if (!onRw || !aligned) {
+    endFlight(G.phase === 'final' || G.phase === 'base' ? (u < -L/2 - 60 && Math.abs(v) < 600 ? 'short' : 'offrw') : 'ground');
+    return;
+  }
+  const sink = p.vs, rating = sink >= -350 ? 'gentle' : sink >= -700 ? 'firm' : 'hard';
+  G.f.landing = {tdz: u <= -L/2 + 1500, hard: rating === 'hard', sink, rating, cl: Math.abs(v), flared: (p.flare || 0) > .3, ck: G.ck.on};
+  p.ground = true; p.vs = 0; p.vsT = 0; p.hdg = g.rwHdg; p.power = 0;
+  setPhase('rollout');
+  say(`Touchdown! ${G.f.landing.rating[0].toUpperCase() + G.f.landing.rating.slice(1)} landing${G.f.landing.tdz ? ' in the touchdown zone' : ''}.`);
+}
+
+function exitRunway() {
+  if (!G || G.phase !== 'rollout' || G.plane.spd > TAXI_KT + 2 || !overlay.hidden) return;
+  const p = G.plane, dir = G.geo.d.x;                         // +1 rolling east (Runway 9), -1 rolling west (Runway 27)
+  const ok = AP.cons.filter(cn => !cn.angled || Math.sign(cn.b.x - cn.a.x) === dir);
+  let pick = ok.filter(cn => (cn.a.x - p.x) * dir >= 120).sort((a, b) => (a.a.x - b.a.x) * dir)[0];
+  if (!pick) pick = ok.slice().sort((a, b) => Math.abs(a.a.x - p.x) - Math.abs(b.a.x - p.x))[0];
+  G.exitPath = [{x: pick.a.x - dir * (pick.angled ? 240 : 110), y: p.y}, {x: pick.a.x, y: pick.a.y}, {x: pick.b.x, y: pick.b.y}];
+  G.f.exitTwy = pick.name; $('btnExit').hidden = true; G.exitT = 0; setPhase('exiting');
+  showWarn(`Exiting at taxiway ${pick.id}`, 'hint');
+}
+$('btnExit').onclick = exitRunway;
+
+/* ---------- other airplanes ---------- */
+function placeAI(ai) {
+  const g = G.geo; let seg = g.loop.length - 1;
+  for (let i = 0; i < g.loop.length; i++) if (ai.pos >= g.loop[i].start && ai.pos < g.loop[i].start + g.loop[i].len) { seg = i; break; }
+  const s = g.loop[seg], f = clamp((ai.pos - s.start) / s.len, 0, 1);
+  ai.x = s.a.p.x + (s.b.p.x - s.a.p.x) * f; ai.y = s.a.p.y + (s.b.p.y - s.a.p.y) * f;
+  ai.alt = s.a.alt + (s.b.alt - s.a.alt) * f;
+  ai.hdg = hdgOf({x: s.b.p.x - s.a.p.x, y: s.b.p.y - s.a.p.y}); ai.seg = s.leg;
+}
+function aiCall(ai, seg) {
+  const g = G.geo, pre = `${APT} traffic, ${ai.name}, `;
+  return {0:`${pre}departing runway ${g.rw}, remaining in the pattern, ${APT}.`,
+          2:`${pre}${g.sw} downwind runway ${g.rw}, touch and go, ${APT}.`,
+          4:`${pre}turning ${g.sw} base runway ${g.rw}, ${APT}.`,
+          5:`${pre}turning final runway ${g.rw}, touch and go, ${APT}.`}[seg];
+}
+function updateTraffic(dt) {
+  const p = G.plane;
+  G.traffic.forEach(ai => {
+    ai.pos = (ai.pos + 380 * dt * tsNow() / 2.6) % G.geo.loopLen; placeAI(ai);
+    if (ai.seg !== ai.lastSeg) { const c = aiCall(ai, ai.seg); if (c) logRadio(ai.name, c, false); ai.lastSeg = ai.seg; }
+    if (!p.ground) {
+      const dd = Math.hypot(ai.x - p.x, ai.y - p.y), da = Math.abs(ai.alt - p.alt);
+      if (dd < 1100 && da < 300) {
+        if (G.t - G.lastConflict > 5 && !inGrace()) { G.conflicts++; G.lastConflict = G.t; }
+        caution(`Traffic! Too close to ${ai.name}. Slow down or widen your path.`, 'traffic', 3);
+      } else if (dd < 2600 && da < 500) hint(`Traffic: ${ai.name} is close. Keep it in sight and follow it.`, 'tfc' + ai.name, 10);
+    }
+  });
+}
+
+/* ---------- drawing ---------- */
+const canvas = $('map'), ctx = canvas.getContext('2d');
+let cw = 0, ch = 0;
+function resize() {
+  const r = $('mapwrap').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cw = r.width; ch = r.height;
+  canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (typeof ckCanvas !== 'undefined') { ckCanvas.width = canvas.width; ckCanvas.height = canvas.height; ck.setTransform(dpr, 0, 0, dpr, 0, 0); }
+}
+window.addEventListener('resize', () => { if (!$('scrSim').hidden) resize(); });
+
+function view(w, h) {
+  if (G && G.geo) {
+    const b = G.geo.box, sc = Math.min(w / (b.maxx - b.minx), h / (b.maxy - b.miny));
+    const cx = (b.minx + b.maxx) / 2, cy = (b.miny + b.maxy) / 2;
+    return {sc, X: x => w/2 + (x - cx) * sc, Y: y => h/2 - (y - cy) * sc};
+  }
+  const sc = Math.min(w, h) / (2 * VIEW); return {sc, X: x => w/2 + x * sc, Y: y => h/2 - y * sc};
+}
+function outside(p, m) { const b = G.geo.box; return p.x < b.minx - m || p.x > b.maxx + m || p.y < b.miny - m || p.y > b.maxy + m; }
+
+function drawSegCircle(c, cx, cy, r, showIndicators) {
+  // segments
+  c.lineWidth = Math.max(4, r * .22); c.strokeStyle = '#FFFFFF';
+  for (let i = 0; i < 8; i++) { c.beginPath(); c.arc(cx, cy, r, (i * 45 + 8) * RAD, (i * 45 + 37) * RAD); c.stroke(); }
+  c.lineWidth = 1; c.strokeStyle = '#5B6470';
+  c.beginPath(); c.arc(cx, cy, r + c.lineWidth + r * .11, 0, Math.PI * 2); c.stroke();
+  if (showIndicators) {
+    // landing strip indicators (parallel to the E-W runway) + traffic pattern indicators
+    c.strokeStyle = '#FFFFFF'; c.lineWidth = Math.max(4, r * .2); c.lineCap = 'round';
+    const len = r * .9, arm = r * .55, gap = r * 1.25;
+    [[9, -1], [27, 1]].forEach(([rw, dir]) => {
+      const x0 = cx + dir * gap, x1 = cx + dir * (gap + len);
+      c.beginPath(); c.moveTo(x0, cy); c.lineTo(x1, cy); c.stroke();
+      const rh = rw === 27 ? 270 : 90, sv = vec(settings.side[rw] === 'L' ? rh - 90 : rh + 90);
+      c.beginPath(); c.moveTo(x1, cy); c.lineTo(x1 + sv.x * arm, cy - sv.y * arm); c.stroke();
+    });
+    c.lineCap = 'butt';
+  }
+}
+function drawSock(c, cx, cy, r, from, kt) {
+  const dir = vec(from + 180), dx = dir.x, dy = -dir.y, nx = -dy, ny = dx;
+  const len = r * (0.7 + Math.min(kt, 15) / 15 * 0.35);
+  for (let i = 0; i < 4; i++) {
+    const a = i / 4, b = (i + 1) / 4, wa = r * .2 * (1 - a * .55), wb = r * .2 * (1 - b * .55);
+    c.beginPath();
+    c.moveTo(cx + dx * len * a + nx * wa, cy + dy * len * a + ny * wa);
+    c.lineTo(cx + dx * len * b + nx * wb, cy + dy * len * b + ny * wb);
+    c.lineTo(cx + dx * len * b - nx * wb, cy + dy * len * b - ny * wb);
+    c.lineTo(cx + dx * len * a - nx * wa, cy + dy * len * a - ny * wa);
+    c.closePath(); c.fillStyle = i % 2 ? '#FFFFFF' : '#F26A1B'; c.fill();
+    c.strokeStyle = '#7A3A10'; c.lineWidth = 1; c.stroke();
+  }
+  c.fillStyle = '#2A2F36'; c.beginPath(); c.arc(cx, cy, Math.max(2.5, r * .1), 0, Math.PI * 2); c.fill();
+}
+function drawMiniSock() {
+  const c = $('sockMini'); if (!c) return;
+  const x = c.getContext('2d'), w = c.width;
+  x.fillStyle = '#DDE7CF'; x.fillRect(0, 0, w, w);
+  drawSegCircle(x, w/2, w/2, 46, false);
+  drawSock(x, w/2, w/2, 58, G.wind.from, G.wind.kt);
+  x.fillStyle = '#1B2433'; x.font = '700 15px Atkinson Hyperlegible, Verdana, sans-serif'; x.textAlign = 'center';
+  x.fillText('N', w/2, 16); x.fillText('S', w/2, w - 6); x.textAlign = 'left'; x.fillText('W', 5, w/2 + 5); x.textAlign = 'right'; x.fillText('E', w - 5, w/2 + 5);
+}
+
+function rr(c, x, y, w, h, r) { c.beginPath(); if (c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
+
+function drawPlaneShape(c, s, fill, stroke, accent, shadow) {
+  c.lineJoin = 'round'; c.lineWidth = 1.4; c.strokeStyle = stroke; c.fillStyle = fill;
+  rr(c, -s * .24, s * .34, s * .48, s * .11, s * .04); c.fill(); if (!shadow) c.stroke();          // tail
+  c.beginPath(); c.moveTo(0, -s * .5);                                                              // fuselage
+  c.bezierCurveTo(s * .1, -s * .48, s * .11, -s * .3, s * .1, -s * .12); c.lineTo(s * .04, s * .44); c.lineTo(-s * .04, s * .44);
+  c.lineTo(-s * .1, -s * .12); c.bezierCurveTo(-s * .11, -s * .3, -s * .1, -s * .48, 0, -s * .5); c.closePath(); c.fill(); if (!shadow) c.stroke();
+  c.beginPath(); c.moveTo(-s * .62, -s * .2); c.lineTo(s * .62, -s * .2); c.lineTo(s * .6, -s * .05); c.lineTo(-s * .6, -s * .05); c.closePath(); c.fill(); if (!shadow) c.stroke();   // high wing
+  if (shadow) return;
+  if (accent) {
+    c.fillStyle = accent; c.fillRect(-s * .58, -s * .135, s * 1.16, s * .035);
+    c.beginPath(); c.moveTo(-s * .025, -s * .05); c.lineTo(s * .025, -s * .05); c.lineTo(s * .015, s * .42); c.lineTo(-s * .015, s * .42); c.closePath(); c.fill();
+  }
+  c.fillStyle = 'rgba(40,70,110,.85)'; c.beginPath(); c.moveTo(-s * .08, -s * .21); c.lineTo(s * .08, -s * .21); c.lineTo(s * .06, -s * .3); c.lineTo(-s * .06, -s * .3); c.closePath(); c.fill();
+  c.fillStyle = '#E0322B'; c.beginPath(); c.arc(-s * .61, -s * .125, s * .035 + .7, 0, 7); c.fill();   // red light, left wingtip
+  c.fillStyle = '#22B04B'; c.beginPath(); c.arc(s * .61, -s * .125, s * .035 + .7, 0, 7); c.fill();    // green light, right wingtip
+  c.strokeStyle = 'rgba(30,30,30,.55)'; c.lineWidth = 1.2; c.beginPath(); c.ellipse(0, -s * .52, s * .17, s * .025, 0, 0, 7); c.stroke();
+}
+function drawPlane(c, x, y, hdg, size, fill, stroke, agl, accent) {
+  const s = size * (1 + Math.min(Math.max(agl, 0), 1500) / 5000);
+  if (agl > 5) { c.save(); c.translate(x + agl / 1000 * 9, y + agl / 1000 * 12); c.rotate(hdg * RAD); c.globalAlpha = .2; drawPlaneShape(c, size, '#000', '#000', null, true); c.restore(); }
+  c.save(); c.translate(x, y); c.rotate(hdg * RAD); drawPlaneShape(c, s, fill, stroke, accent, false); c.restore();
+}
+
+function tag(c, text, x, y, bg, fg) {
+  c.font = '700 13px Atkinson Hyperlegible, Verdana, sans-serif';
+  const w = c.measureText(text).width + 14, cwid = c.canvas.clientWidth || 9999;
+  const tx = Math.min(Math.max(x - w / 2, 4), cwid - w - 4);
+  c.fillStyle = 'rgba(0,0,0,.18)'; rr(c, tx + 1, y - 11, w, 23, 7); c.fill();
+  c.fillStyle = bg; rr(c, tx, y - 12, w, 23, 7); c.fill();
+  c.fillStyle = fg; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(text, tx + 7, y); c.textBaseline = 'alphabetic';
+}
+
+
+/* ---------- airport layout (feet; runway centerline on the x axis, north is +y) ---------- */
+const AP = (() => {
+  const TWY_Y = 400, HOLD_Y = 200, EDGE = 75, HW = 25;
+  const con = (id, ax, bx) => ({id, name: 'Alpha ' + id.slice(1), a: {x: ax, y: EDGE}, b: {x: bx, y: TWY_Y}, angled: ax !== bx});
+  const cons = [con('A1', -2150, -2150), con('A2', -450, -900), con('A3', 0, 0), con('A4', 450, 900), con('A5', 2150, 2150)];
+  cons.forEach(c => {
+    const dx = c.b.x - c.a.x, dy = c.b.y - c.a.y, ln = Math.hypot(dx, dy);
+    c.dir = {x: dx / ln, y: dy / ln}; c.n = {x: -c.dir.y, y: c.dir.x};
+    const t = (HOLD_Y - EDGE) / dy; c.hold = {x: c.a.x + dx * t, y: HOLD_Y};
+    const onLine = (P, Y) => ({x: P.x - c.dir.x * (P.y - Y) / c.dir.y, y: Y});       // slide a corner along the taxiway onto y = Y
+    const wA = HW + 80, wB = HW + 30;
+    c.poly = [onLine({x: c.a.x + c.n.x * wA, y: c.a.y + c.n.y * wA}, EDGE - 5), onLine({x: c.b.x + c.n.x * wB, y: c.b.y + c.n.y * wB}, TWY_Y),
+              onLine({x: c.b.x - c.n.x * wB, y: c.b.y - c.n.y * wB}, TWY_Y), onLine({x: c.a.x - c.n.x * wA, y: c.a.y - c.n.y * wA}, EDGE - 5)];
+    c.holdHalf = wA + (wB - wA) * t;
+  });
+  const rectP = (x0, x1, y0, y1) => [{x: x0, y: y0}, {x: x1, y: y0}, {x: x1, y: y1}, {x: x0, y: y1}];
+  const apron = {x0: -900, x1: 900, y0: 600, y1: 950};
+  const links = [-500, 500];
+  const pave = [rectP(-L/2 - 200, L/2 + 200, -EDGE, EDGE), rectP(-2200, 2200, TWY_Y - HW, TWY_Y + HW), rectP(apron.x0, apron.x1, apron.y0, apron.y1),
+                ...links.map(x => rectP(x - HW, x + HW, TWY_Y, apron.y0)), ...cons.map(c => c.poly)];
+  return {TWY_Y, HOLD_Y, EDGE, HW, cons, apron, links, pave};
+})();
+function inPoly(x, y, P) { let inside = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a.y > y) !== (b.y > y) && x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) inside = !inside; } return inside; }
+const onPavement = (x, y) => AP.pave.some(P => inPoly(x, y, P));
+function nearestCon(x, y) { let best = AP.cons[0], bd = 1e9; AP.cons.forEach(cn => { const d = segDist(x, y, cn.a.x, cn.a.y, cn.b.x, cn.b.y); if (d < bd) { bd = d; best = cn; } }); return best; }
+const SIGN_ST = {hold: {bg: '#C8102E', fg: '#FFFFFF'}, loc: {bg: '#111111', fg: '#F2C230', bd: '#F2C230'}, dir: {bg: '#F2C230', fg: '#111111'}, dist: {bg: '#111111', fg: '#FFFFFF'}};
+const AP_SIGNS = (() => {
+  const out = [], E = AP.EDGE;
+  AP.cons.forEach(cn => {
+    const left = {x: cn.dir.y, y: -cn.dir.x}, off = cn.holdHalf + 18;      // left side for a pilot taxiing toward the runway
+    out.push({x: cn.hold.x + left.x * off, y: cn.hold.y + left.y * off, parts: [{t: '9-27', s: 'hold'}, {t: cn.id, s: 'loc'}]});
+    if (!cn.angled || cn.b.x > cn.a.x) out.push({x: cn.a.x - 210, y: E + 45, east: true, parts: [{t: cn.angled ? `↖ ${cn.id}` : `← ${cn.id}`, s: 'dir'}]});
+    if (!cn.angled || cn.b.x < cn.a.x) out.push({x: cn.a.x + 210, y: E + 45, west: true, parts: [{t: cn.angled ? `${cn.id} ↗` : `${cn.id} →`, s: 'dir'}]});
+  });
+  for (let k = 1; k <= 4; k++) {
+    out.push({x: L/2 - 1000 * k, y: E + 60, east: true, parts: [{t: String(k), s: 'dist'}]});
+    out.push({x: -L/2 + 1000 * k, y: -E - 60, west: true, parts: [{t: String(k), s: 'dist'}]});
+  }
+  out.push({x: -560, y: AP.TWY_Y + 45, parts: [{t: 'A', s: 'loc'}]}, {x: 560, y: AP.TWY_Y + 45, parts: [{t: 'A', s: 'loc'}]});
+  return out;
+})();
+
+const SCENERY = (() => {
+  let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const fields = [], trees = [], blds = [];
+  const cols = ['#D4E3BF', '#C8DAB0', '#E0E5C2', '#CCDDB6', '#BFD3A2', '#DCE0B4'];
+  for (let i = 0; i < 80; i++) { const x = -19000 + rnd() * 38000, y = -19000 + rnd() * 38000; if (Math.abs(x) < 4300 && Math.abs(y) < 1900) continue;
+    fields.push({x, y, w: 1300 + rnd() * 2300, h: 900 + rnd() * 1800, a: (rnd() - .5) * .45, c: cols[Math.floor(rnd() * cols.length)]}); }
+  for (let i = 0; i < 46; i++) { const x = -19000 + rnd() * 38000, y = -19000 + rnd() * 38000; if (Math.abs(x) < 4200 && Math.abs(y) < 2400) continue;
+    const n = 3 + Math.floor(rnd() * 5), pts = []; for (let j = 0; j < n; j++) pts.push({dx: (rnd() - .5) * 800, dy: (rnd() - .5) * 800, r: 150 + rnd() * 180}); trees.push({x, y, pts}); }
+  for (let i = 0; i < 26; i++) blds.push({x: -8800 + (rnd() - .5) * 3200, y: 7800 + (rnd() - .5) * 2200, w: 120 + rnd() * 180, h: 100 + rnd() * 160, c: ['#C9B48A', '#B99F74', '#D8C9A6', '#BFA27C'][Math.floor(rnd() * 4)]});
+  return {fields, trees, blds};
+})();
+
+function patternLegs(g) { return [[g.DE, g.U, 'Upwind'], [g.U, g.C, 'Crosswind'], [g.C, g.B, 'Downwind'], [g.B, g.F, 'Base'], [g.F, g.T, 'Final']]; }
+
+function drawMap(c, w, h, o) {
+  const Vw = view(w, h), X = Vw.X, Y = Vw.Y, sc = Vw.sc, g = G && G.geo;
+  const bg = c.createLinearGradient(0, 0, w, h); bg.addColorStop(0, '#DDE9CD'); bg.addColorStop(1, '#CDDCB8');
+  c.fillStyle = bg; c.fillRect(0, 0, w, h);
+  SCENERY.fields.forEach(f => { c.save(); c.translate(X(f.x), Y(f.y)); c.rotate(f.a); c.fillStyle = f.c; c.fillRect(-f.w * sc / 2, -f.h * sc / 2, f.w * sc, f.h * sc);
+    c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 1; c.strokeRect(-f.w * sc / 2, -f.h * sc / 2, f.w * sc, f.h * sc); c.restore(); });
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  const river = () => { c.beginPath(); c.moveTo(X(-19000), Y(-9500)); c.bezierCurveTo(X(-5000), Y(-4200), X(3000), Y(-12500), X(19000), Y(-8500)); };
+  river(); c.strokeStyle = '#6E9EC4'; c.lineWidth = Math.max(6, 280 * sc); c.stroke();
+  river(); c.strokeStyle = '#97C3E4'; c.lineWidth = Math.max(3.5, 180 * sc); c.stroke();
+  const lg = c.createRadialGradient(X(8800), Y(8600), 0, X(8800), Y(8600), 2300 * sc); lg.addColorStop(0, '#A6CDEA'); lg.addColorStop(1, '#7EAFD7');
+  c.fillStyle = lg; c.strokeStyle = '#5E92BD'; c.lineWidth = 1.5;
+  c.beginPath(); c.ellipse(X(8800), Y(8600), 2300 * sc, 1300 * sc, .2, 0, Math.PI * 2); c.fill(); c.stroke();
+  const hwy = () => { c.beginPath(); c.moveTo(X(-19000), Y(700)); c.lineTo(X(-6000), Y(6400)); c.lineTo(X(19000), Y(11900)); };
+  hwy(); c.strokeStyle = '#7D7469'; c.lineWidth = Math.max(4, 170 * sc); c.stroke();
+  hwy(); c.strokeStyle = '#EAD47E'; c.lineWidth = 1; c.setLineDash([6, 7]); c.stroke(); c.setLineDash([]);
+  c.fillStyle = '#ECDDA6'; c.beginPath(); c.ellipse(X(-8800), Y(7800), 2100 * sc, 1500 * sc, -.2, 0, Math.PI * 2); c.fill();
+  SCENERY.blds.forEach(b => { c.fillStyle = b.c; c.fillRect(X(b.x), Y(b.y), Math.max(2, b.w * sc), Math.max(2, b.h * sc)); });
+  c.fillStyle = '#5E4A1E'; c.font = 'italic 700 13px Atkinson Hyperlegible, Verdana, sans-serif'; c.textAlign = 'center';
+  c.fillText('Pine Ridge', X(-8800), Y(9600));
+  SCENERY.trees.forEach(t => t.pts.forEach(q => { const x = X(t.x + q.dx), y = Y(t.y + q.dy), r = Math.max(2.5, q.r * sc);
+    c.fillStyle = 'rgba(40,60,30,.18)'; c.beginPath(); c.arc(x + r * .35, y + r * .4, r, 0, 7); c.fill();
+    c.fillStyle = '#7DA562'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,.2)'; c.beginPath(); c.arc(x - r * .3, y - r * .3, r * .45, 0, 7); c.fill(); }));
+
+  // pattern ribbon
+  if (g && o.guide) {
+    const scen = G.scenario, legs = patternLegs(g);
+    const line = (pts) => { c.beginPath(); pts.forEach((q, i) => i ? c.lineTo(X(q.x), Y(q.y)) : c.moveTo(X(q.x), Y(q.y))); };
+    if (scen !== 'departure') {
+      const pts = g.ribbon;
+      line(pts); c.strokeStyle = 'rgba(163,36,106,.14)'; c.lineWidth = Math.max(14, 700 * sc); c.stroke();
+      line(pts); c.strokeStyle = 'rgba(163,36,106,.6)'; c.lineWidth = 2; c.setLineDash([8, 7]); c.stroke(); c.setLineDash([]);
+      chevronsPath(c, pts.map(q => [X(q.x), Y(q.y)]), 'rgba(163,36,106,.85)');
+    }
+    if (scen === 'arrival' || scen === 'explore') {
+      line([g.S, g.M]); c.strokeStyle = 'rgba(47,111,181,.7)'; c.lineWidth = 2.5; c.setLineDash([9, 7]); c.stroke(); c.setLineDash([]);
+      chevrons(c, X(g.S.x), Y(g.S.y), X(g.M.x), Y(g.M.y), 'rgba(47,111,181,.9)');
+    }
+    if (scen === 'departure' || scen === 'explore') {
+      line([g.DE, g.U2, g.X]); c.strokeStyle = 'rgba(30,133,86,.75)'; c.lineWidth = 2.5; c.setLineDash([9, 7]); c.stroke(); c.setLineDash([]);
+      chevrons(c, X(g.U2.x), Y(g.U2.y), X(g.X.x), Y(g.X.y), 'rgba(30,133,86,.9)');
+    }
+    if (o.legLabels && scen !== 'departure') legs.forEach(([a, b, name]) => {
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      const o2 = {Upwind: [700, -1000], Final: [0, -1000], Downwind: [-3600, 1000], Crosswind: [1100, 0], Base: [-1100, 0]}[name];
+      tag(c, name, X(mx + g.d.x * o2[0] + g.s.x * o2[1]), Y(my + g.d.y * o2[0] + g.s.y * o2[1]), 'rgba(255,255,255,.94)', '#A3246A');
+    });
+  }
+
+  // airport
+  const half = Math.max(RW_W * sc / 2, 9), x1 = X(-L/2), x2 = X(L/2), y0 = Y(0);
+  c.fillStyle = '#E6EFD6'; rr(c, X(-L/2 - 500), Y(1300), (L + 1000) * sc, 1800 * sc, 10); c.fill();
+  const A2 = AP.apron, tw = Math.max(4, 110 * sc);
+  c.fillStyle = '#9DA3A9'; c.fillRect(X(1250), Y(900), 350 * sc, 260 * sc);
+  c.fillStyle = '#B4BAC0'; c.fillRect(X(A2.x0), Y(A2.y1), (A2.x1 - A2.x0) * sc, (A2.y1 - A2.y0) * sc);
+  c.fillStyle = '#8E969E'; [[-700, -350], [-250, 100], [250, 600]].forEach(([a, b]) => c.fillRect(X(a), Y(1060), (b - a) * sc, Math.max(4, 100 * sc)));
+  c.fillRect(X(-1700), Y(760), 600 * sc, Math.max(3, 60 * sc));
+  c.fillStyle = '#C9B894'; c.fillRect(X(930), Y(780), 220 * sc, 140 * sc);
+  const twyPaths = [[{x: -2200, y: AP.TWY_Y}, {x: 2200, y: AP.TWY_Y}], ...AP.links.map(x => [{x, y: AP.TWY_Y}, {x, y: A2.y0}]), ...AP.cons.map(cn => [{x: cn.a.x, y: 0}, cn.b])];
+  c.lineCap = 'butt';
+  [[ '#949AA0', tw], ['#E8C53A', 1]].forEach(([col, lw]) => { c.strokeStyle = col; c.lineWidth = lw;
+    twyPaths.forEach(pp => { c.beginPath(); c.moveTo(X(pp[0].x), Y(pp[0].y)); c.lineTo(X(pp[1].x), Y(pp[1].y)); c.stroke(); }); });
+  c.strokeStyle = '#E8C53A'; c.lineWidth = 2;
+  AP.cons.forEach(cn => { const hx = X(cn.hold.x), hy = Y(cn.hold.y + 40), ex = cn.n.x * (tw / 2 + 2), ey = -cn.n.y * (tw / 2 + 2);
+    c.beginPath(); c.moveTo(hx - ex, hy - ey); c.lineTo(hx + ex, hy + ey); c.stroke(); });
+  [[-500, 830, 180], [300, 860, 0]].forEach(([px, py, a]) => { c.save(); c.translate(X(px), Y(py)); c.rotate(a * RAD); drawPlaneShape(c, Math.max(9, 260 * sc), '#F4F4F4', '#555', '#2F6FB5', false); c.restore(); });
+  const bon = Math.floor(performance.now() / 650) % 2;
+  c.fillStyle = bon ? '#1E8556' : '#FFFFFF'; c.strokeStyle = '#1B2433'; c.lineWidth = 1; c.beginPath(); c.arc(X(1150), Y(1000), Math.max(3, 60 * sc), 0, 7); c.fill(); c.stroke();
+  if (sc > .02 && !o.noTwyLabels) {
+    c.font = '700 10px Barlow Condensed, Arial Narrow, sans-serif'; c.textAlign = 'center';
+    AP.cons.forEach(cn => { const lx = X((cn.hold.x + cn.b.x) / 2) + 8, ly = Y((cn.hold.y + cn.b.y) / 2); c.fillStyle = '#111'; c.fillRect(lx - 9, ly - 7, 18, 13); c.fillStyle = '#F2C230'; c.fillText(cn.id, lx, ly + 3); });
+    c.fillStyle = '#111'; c.fillRect(X(-1500) - 6, Y(AP.TWY_Y) - 19, 12, 13); c.fillStyle = '#F2C230'; c.fillText('A', X(-1500), Y(AP.TWY_Y) - 9);
+    c.textAlign = 'left';
+  }
+  const rg = c.createLinearGradient(0, y0 - half, 0, y0 + half); rg.addColorStop(0, '#454B53'); rg.addColorStop(.5, '#383D44'); rg.addColorStop(1, '#454B53');
+  c.fillStyle = rg; c.fillRect(x1, y0 - half, x2 - x1, half * 2);
+  c.strokeStyle = 'rgba(255,255,255,.85)'; c.lineWidth = 1;
+  [y0 - half + 2, y0 + half - 2].forEach(yy => { c.beginPath(); c.moveTo(x1 + 2, yy); c.lineTo(x2 - 2, yy); c.stroke(); });
+  const kl = Math.max(9, 200 * sc), gapC = half * .16, usable = half - 3 - gapC;
+  c.fillStyle = '#FFFFFF';
+  [x1 + 3, x2 - 3 - kl].forEach(kx => { for (let i = 0; i < 4; i++) { const hh = usable / 4 * .55;
+    c.fillRect(kx, y0 - gapC - (i + 1) * usable / 4, kl, hh); c.fillRect(kx, y0 + gapC + i * usable / 4 + (usable / 4 - hh), kl, hh); } });
+  const fs = Math.max(12, half * 1.25);
+  c.font = `700 ${fs}px Barlow Condensed, Arial Narrow, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.save(); c.translate(x1 + 3 + kl + fs * .75, y0); c.rotate(Math.PI / 2); c.fillText('9', 0, 0); c.restore();
+  c.save(); c.translate(x2 - 3 - kl - fs * .75, y0); c.rotate(-Math.PI / 2); c.fillText('27', 0, 0); c.restore();
+  c.textBaseline = 'alphabetic';
+  c.strokeStyle = '#FFFFFF'; c.lineWidth = 1.5; c.setLineDash([8, 7]);
+  c.beginPath(); c.moveTo(x1 + kl + fs * 1.7, y0); c.lineTo(x2 - kl - fs * 1.7, y0); c.stroke(); c.setLineDash([]);
+  const ap = Math.max(6, 160 * sc), aph = Math.max(2, half * .28);
+  [X(-L/2 + 1000), X(L/2 - 1000) - ap].forEach(ax => { c.fillRect(ax, y0 - half * .62, ap, aph); c.fillRect(ax, y0 + half * .62 - aph, ap, aph); });
+  c.fillStyle = '#A3246A'; c.font = '700 13px Atkinson Hyperlegible, Verdana, sans-serif'; c.textAlign = 'center';
+  c.fillText('Pine Ridge Regional (KPRX)', X(0), y0 + half + 20);
+  c.font = '12px Atkinson Hyperlegible, Verdana, sans-serif'; c.fillText('Field elevation 700 ft', X(0), y0 + half + 35);
+
+  const scx = X(SEG_X), scy = Y(SEG_Y), r = Math.max(15, 500 * sc);
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.arc(scx, scy, r * 1.15, 0, 7); c.fill();
+  drawSegCircle(c, scx, scy, r, true);
+  if (G) drawSock(c, scx, scy, r * 1.05, G.wind.from, G.wind.kt);
+
+  if (g && o.ghost) {
+    const pts = g.ghost;
+    c.save(); c.lineJoin = 'round';
+    c.strokeStyle = 'rgba(80,58,0,.35)'; c.lineWidth = 8;
+    c.beginPath(); g.ghostLine.forEach((q, i) => i ? c.lineTo(X(q.x), Y(q.y)) : c.moveTo(X(q.x), Y(q.y))); c.stroke();
+    c.strokeStyle = '#F2B300'; c.lineWidth = 4.5; c.setLineDash([16, 10]);
+    if (!reduceMotion && o.animate) c.lineDashOffset = -(performance.now() / 40) % 26;
+    c.beginPath(); g.ghostLine.forEach((q, i) => i ? c.lineTo(X(q.x), Y(q.y)) : c.moveTo(X(q.x), Y(q.y))); c.stroke();
+    c.restore();
+    if (o.labels) {
+      const ti = targetIndex();
+      pts.forEach((q, i) => {
+        if (!q.label || i !== ti) return;
+        const pulse = reduceMotion ? 0 : (performance.now() / 600) % 1;
+        c.fillStyle = '#F2B300'; c.strokeStyle = '#1B2433'; c.lineWidth = 1.5;
+        c.beginPath(); c.arc(X(q.p.x), Y(q.p.y), 7, 0, Math.PI * 2); c.fill(); c.stroke();
+        c.strokeStyle = `rgba(242,179,0,${1 - pulse})`; c.lineWidth = 3;
+        c.beginPath(); c.arc(X(q.p.x), Y(q.p.y), 10 + pulse * 16, 0, Math.PI * 2); c.stroke();
+        tag(c, q.label, X(q.p.x), Y(q.p.y) - 26, '#1B2433', '#FFFFFF');
+      });
+    }
+  }
+
+  // compass + scale
+  c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(w - 34, 36, 24, 0, 7); c.fill();
+  c.strokeStyle = '#1B2433'; c.lineWidth = 1.2; c.beginPath(); c.arc(w - 34, 36, 24, 0, 7); c.stroke();
+  c.fillStyle = '#A3246A'; c.beginPath(); c.moveTo(w - 34, 16); c.lineTo(w - 40, 36); c.lineTo(w - 28, 36); c.closePath(); c.fill();
+  c.fillStyle = '#1B2433'; c.beginPath(); c.moveTo(w - 34, 56); c.lineTo(w - 40, 36); c.lineTo(w - 28, 36); c.closePath(); c.fill();
+  c.font = '700 12px Atkinson Hyperlegible, Verdana, sans-serif'; c.textAlign = 'center'; c.fillText('N', w - 34, 74);
+  const nm = 6076 * sc, bx = w - nm - 16, by = h - 18;
+  c.strokeStyle = '#1B2433'; c.lineWidth = 2; c.beginPath(); c.moveTo(bx, by - 5); c.lineTo(bx, by); c.lineTo(bx + nm, by); c.lineTo(bx + nm, by - 5); c.stroke();
+  c.font = '12px Atkinson Hyperlegible, Verdana, sans-serif'; c.fillText('1 nautical mile', bx + nm / 2, by - 8);
+  c.textAlign = 'left'; c.lineCap = 'butt';
+}
+
+function chevrons(c, ax, ay, bx, by, color) {
+  const len = Math.hypot(bx - ax, by - ay), ang = Math.atan2(by - ay, bx - ax);
+  c.strokeStyle = color; c.lineWidth = 2.5;
+  for (let t = 30; t < len - 16; t += 52) {
+    const px = ax + (bx - ax) * t / len, py = ay + (by - ay) * t / len;
+    c.save(); c.translate(px, py); c.rotate(ang); c.beginPath(); c.moveTo(-5, -6); c.lineTo(3, 0); c.lineTo(-5, 6); c.stroke(); c.restore();
+  }
+}
+
+/* ---------- clickable spots ---------- */
+function makeHotspots(g) {
+  const P = g.P, sw = g.sw, rw = g.rw, A = APT, pre = `${A} traffic, ${ME}, `;
+  return [
+    {p: P(L/2 - 1200, 0), title: 'Upwind (departure) leg', what: `After takeoff, climb straight ahead on the runway heading (${pad3(g.rwHdg)}).`, alt: 'Climbing from 700 ft', power: 'Full power', radio: `Before takeoff: “${pre}departing runway ${rw}, remaining in the pattern, ${A}.”`, why: 'Climbing straight out keeps you predictable and gets you altitude before you turn.'},
+    {p: g.U, title: 'Turn crosswind', what: `Turn ${sw} 90° only after you’re past the end of the runway and within 300 ft of pattern altitude (1,400 ft or higher).`, alt: '1,400 ft or higher', power: 'Full power, still climbing', radio: 'Optional: “turning crosswind.”', why: 'Turning low and slow near the ground is risky, and other pilots expect you to climb straight out first.'},
+    {p: P(L/2 + 1200, D/2), title: 'Crosswind leg', what: 'Fly at a right angle to the runway while you keep climbing toward pattern altitude.', alt: 'Climbing to 1,700 ft', power: 'Full power', radio: 'Usually none', why: 'This leg carries you out to the right spacing for downwind, about ¾ mile from the runway.'},
+    {p: P(1900, D), title: 'Downwind leg', what: 'Fly parallel to the runway, about ½ to 1 mile out, holding pattern altitude. Run the pre-landing checklist here.', alt: 'Hold 1,700 ft', power: 'About 2,200 RPM', radio: 'Your downwind call, if you didn’t make it when you joined', why: 'A steady altitude and spacing make you easy for other pilots to see and predict.'},
+    {p: g.E, title: '45° entry', what: 'Arriving airplanes fly toward the middle of the downwind leg at a 45° angle, already at pattern altitude.', alt: '1,700 ft (pattern altitude)', power: 'Cruise, about 2,200 RPM', radio: `About 10 miles out: “${pre}10 miles ${g.inDir}, inbound for landing runway ${rw}, ${A}.”`, why: 'The 45° angle lets you see the whole pattern and spot other airplanes before you merge in.'},
+    {p: g.M, title: 'Join downwind at midfield', what: `Turn to fly parallel to the runway, opposite the landing direction (heading ${pad3(g.dwHdg)}).`, alt: '1,700 ft', power: 'Cruise, about 2,200 RPM', radio: `“${pre}entering ${sw} downwind runway ${rw}, full stop, ${A}.”`, why: 'Joining at midfield gives you room to get set up and fit in behind other airplanes.'},
+    {p: g.A, title: 'Abeam the numbers', what: `When the runway numbers are straight off your ${sw} wingtip, reduce power and start down.`, alt: 'Start down from 1,700 ft', power: 'About 1,500 RPM and 10° of flaps, descending about 500 ft per minute', radio: 'None', why: 'Starting down at the same spot every time makes every approach look the same.'},
+    {p: g.B, title: 'Turn base', what: `Turn ${sw} when the end of the runway is about 45° behind your wingtip.`, alt: 'About 1,300 ft and descending', power: 'Reduced power', radio: `“${pre}turning ${sw} base runway ${rw}, full stop, ${A}.”`, why: 'Turning at the 45° point keeps the pattern the same size, so base and final aren’t rushed.'},
+    {p: P(-(L/2 + D), D/2), title: 'Base leg', what: 'Fly at a right angle to the runway, still descending. Look along final for other airplanes before you turn.', alt: 'About 1,200 to 1,000 ft', power: 'Reduced; adjust to manage your descent', radio: 'None (you called it as you turned)', why: 'Base is your chance to judge whether you’re too high or too low and fix it early.'},
+    {p: g.F, title: 'Turn final', what: `Start the ${sw} turn a little before the centerline so you roll out lined up with the runway.`, alt: 'About 1,000 ft (300 ft above the airport)', power: 'Reduced power', radio: `“${pre}turning final runway ${rw}, full stop, ${A}.”`, why: 'Leading the turn prevents overshooting. Never steepen the bank to fix an overshoot: go around instead.'},
+    {p: P(-(L/2 + D/2), 0), title: 'Final approach', what: 'Line up with the centerline and descend steadily toward the runway numbers.', alt: 'Descending to the runway', power: 'Adjust to hold about 65 to 75 knots', radio: 'None', why: 'A stable approach (lined up, steady speed, steady descent) is the key to a good landing.'},
+    {p: P(-L/2 + 650, 0), title: 'Touchdown zone', what: 'Aim to touch down just past the numbers, in the first part of the runway (the first 1,500 ft here).', alt: '700 ft (the ground)', power: 'Idle', radio: `After you exit the runway: “${pre}clear of runway ${rw}, ${A}.”`, why: 'Landing early leaves plenty of runway to slow down and stop.'},
+    {p: P(L/2 + 800 + 3200, 3200), title: 'Departing the pattern', what: `To leave, climb past the end of the runway to pattern altitude, then go straight out or turn 45° to the ${sw}.`, alt: '1,700 ft before you turn', power: 'Full power', radio: `Before takeoff: “${pre}departing runway ${rw}, departing to the ${g.exitDir}, ${A}.”`, why: 'Leaving in the same direction as the pattern keeps you clear of airplanes joining it.'},
+    {p: {x: SEG_X, y: SEG_Y}, title: 'Windsock and segmented circle', what: 'The windsock shows the wind: its open end faces into the wind. The L-shaped markers show which way the pattern turns for each runway.', why: 'You always take off and land into the wind, so this is the first thing you check.'}
+  ];
+}
+function hotInfoHTML(h) {
+  const row = (k, v) => v ? `<div><dt>${k}</dt><dd>${v}</dd></div>` : '';
+  return `<h2>${h.title}</h2><p>${h.what}</p><dl class="facts2">${row('Altitude', h.alt)}${row('Power', h.power)}${row('Radio call', h.radio)}</dl><p class="why">Why: ${h.why}</p>`;
+}
+function hotspotAt(mx, my) {
+  if (!G || !G.geo || G.quiz) return null;
+  const ex = G.scenario === 'explore';
+  if (!ex && (G.mode === 'checkride' || !G.running || G.ended)) return null;
+  const Vw = view(cw, ch), lim = ex ? 22 : 15;
+  let best = null, bd = lim;
+  G.geo.hot.forEach((h, i) => { const d = Math.hypot(Vw.X(h.p.x) - mx, Vw.Y(h.p.y) - my); if (d < bd) { bd = d; best = i; } });
+  return best;
+}
+function drawHotspots(c, Vw, ex) {
+  const now = performance.now();
+  G.geo.hot.forEach((h, i) => {
+    const x = Vw.X(h.p.x), y = Vw.Y(h.p.y), active = ex && i === G.sel, hover = i === G.hover;
+    const r = ex ? (active || hover ? 16 : 13) : (hover ? 12 : 8);
+    if (active && !reduceMotion) { const pu = (now / 800) % 1; c.strokeStyle = `rgba(163,36,106,${1 - pu})`; c.lineWidth = 3; c.beginPath(); c.arc(x, y, r + 4 + pu * 16, 0, 7); c.stroke(); }
+    c.globalAlpha = ex || hover ? 1 : .8;
+    c.fillStyle = 'rgba(0,0,0,.2)'; c.beginPath(); c.arc(x + 1, y + 2, r, 0, 7); c.fill();
+    c.fillStyle = active ? '#A3246A' : '#FFFFFF'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+    c.lineWidth = 2.5; c.strokeStyle = '#A3246A'; c.stroke();
+    if (ex || hover) { c.fillStyle = active ? '#FFFFFF' : '#A3246A'; c.font = `700 ${Math.round(r * 1.1)}px Barlow Condensed, Arial Narrow, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(i + 1), x, y + 1); c.textBaseline = 'alphabetic'; }
+    else { c.fillStyle = '#A3246A'; c.beginPath(); c.arc(x, y, 2.5, 0, 7); c.fill(); }
+    c.globalAlpha = 1;
+    if (active || hover) tag(c, h.title, x, y - r - 16, '#1B2433', '#FFFFFF');
+  });
+}
+
+/* ---------- find-it challenge ---------- */
+function startQuiz() {
+  const g = G.geo, P = g.P;
+  const bank = [
+    {q: 'Click where you reduce power and start down.', pt: g.A, hot: 6},
+    {q: 'Click where you turn onto base.', pt: g.B, hot: 7},
+    {q: 'Click where you turn final.', pt: g.F, hot: 9},
+    {q: 'Click where you aim to touch down.', seg: [g.T, P(-L/2 + 1500, 0)], hot: 11},
+    {q: 'Click where an arriving airplane joins the downwind leg.', pt: g.M, hot: 5},
+    {q: 'Click where you turn crosswind after takeoff.', pt: g.U, hot: 1},
+    {q: 'Click anywhere on the downwind leg.', seg: [g.C, g.B], hot: 3},
+    {q: 'Click anywhere on the base leg.', seg: [g.B, g.F], hot: 8},
+    {q: 'Click anywhere on the crosswind leg.', seg: [g.U, g.C], hot: 2},
+    {q: 'Click the windsock.', pt: {x: SEG_X, y: SEG_Y}, hot: 13}
+  ];
+  G.quiz = {qs: shuffle(bank).slice(0, 8), i: 0, score: 0, result: null}; G.sel = null; G.hover = null;
+  renderInfo();
+}
+function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, t = clamp(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+function answerQuiz(mx, my) {
+  const q = G.quiz, cur = q.qs[q.i], Vw = view(cw, ch);
+  const ok = cur.pt ? Math.hypot(Vw.X(cur.pt.x) - mx, Vw.Y(cur.pt.y) - my) <= 36
+                    : segDist(mx, my, Vw.X(cur.seg[0].x), Vw.Y(cur.seg[0].y), Vw.X(cur.seg[1].x), Vw.Y(cur.seg[1].y)) <= 26;
+  q.result = {ok, mx, my}; if (ok) q.score++;
+  renderInfo();
+}
+function drawQuizMarks(c, Vw) {
+  const q = G.quiz; if (!q || !q.result || q.i >= q.qs.length) return;
+  const cur = q.qs[q.i], pu = reduceMotion ? 0 : (performance.now() / 800) % 1;
+  c.strokeStyle = '#1E8556'; c.lineCap = 'round';
+  if (cur.pt) { const x = Vw.X(cur.pt.x), y = Vw.Y(cur.pt.y);
+    c.fillStyle = 'rgba(30,133,86,.25)'; c.beginPath(); c.arc(x, y, 18, 0, 7); c.fill(); c.lineWidth = 4; c.stroke();
+    c.strokeStyle = `rgba(30,133,86,${1 - pu})`; c.lineWidth = 3; c.beginPath(); c.arc(x, y, 22 + pu * 14, 0, 7); c.stroke(); }
+  else { c.lineWidth = 10; c.strokeStyle = 'rgba(30,133,86,.65)'; c.beginPath(); c.moveTo(Vw.X(cur.seg[0].x), Vw.Y(cur.seg[0].y)); c.lineTo(Vw.X(cur.seg[1].x), Vw.Y(cur.seg[1].y)); c.stroke(); }
+  const {mx, my, ok} = q.result;
+  c.strokeStyle = ok ? '#1E8556' : '#C9362A'; c.lineWidth = 4;
+  c.beginPath(); c.moveTo(mx - 8, my - 8); c.lineTo(mx + 8, my + 8); c.moveTo(mx + 8, my - 8); c.lineTo(mx - 8, my + 8); c.stroke();
+  c.lineCap = 'butt';
+}
+
+function renderInfo() {
+  const el = $('infoCard');
+  if (!G || G.scenario !== 'explore') { el.hidden = true; return; }
+  el.hidden = false;
+  const hs = G.geo ? G.geo.hot : [], q = G.quiz;
+  if (!G.geo) { el.innerHTML = `<h2>Explore the pattern</h2><p>First, check the wind.</p>`; return; }
+  if (q) {
+    if (q.i >= q.qs.length) {
+      const msg = q.score === q.qs.length ? 'Perfect! You know your way around the pattern.' : q.score >= 6 ? 'Nice work. Review the spots you missed, then try again.' : 'Take the tour again, then give it another try.';
+      el.innerHTML = `<h2>Challenge complete</h2><p class="bigscore">${q.score} / ${q.qs.length}</p><p>${msg}</p><div class="mrow start"><button class="primary" id="qAgain">Try again</button><button class="btn" id="qExit">Back to exploring</button></div>`;
+    } else {
+      const cur = q.qs[q.i];
+      let body = `<p class="qcount">Find-it challenge: question ${q.i + 1} of ${q.qs.length}. Score: ${q.score}</p><h2>${cur.q}</h2>`;
+      if (q.result) body += `<p class="${q.result.ok ? 'good' : 'bad'}">${q.result.ok ? 'Got it!' : 'Not quite. The green mark shows the right spot.'}</p><p>${hs[cur.hot].what}</p><div class="mrow start"><button class="primary" id="qNext">${q.i + 1 === q.qs.length ? 'See my score' : 'Next question'}</button></div>`;
+      else body += `<p class="note">Click or tap the map.</p><div class="mrow start"><button class="btn" id="qExit">Stop the challenge</button></div>`;
+      el.innerHTML = body;
+    }
+  } else if (G.sel != null) {
+    el.innerHTML = `<p class="qcount">Spot ${G.sel + 1} of ${hs.length}</p>${hotInfoHTML(hs[G.sel])}<div class="mrow start"><button class="btn" id="hPrev">◀ Previous</button><button class="primary" id="hNext">Next ▶</button></div>`;
+  } else {
+    el.innerHTML = `<h2>Explore the pattern</h2><p>Click or tap any numbered spot on the map to see what happens there: your altitude, power setting, radio call, and why.</p><p>The spots are numbered in the order you’d fly them. Use the arrow keys or Take the tour to step through.</p>`;
+  }
+  const on = (id, fn) => { const b = $(id); if (b) b.onclick = fn; };
+  on('qAgain', startQuiz);
+  on('qExit', () => { G.quiz = null; renderInfo(); });
+  on('qNext', () => { q.i++; q.result = null; renderInfo(); });
+  on('hPrev', () => stepSel(-1));
+  on('hNext', () => stepSel(1));
+}
+function stepSel(dir) {
+  if (!G || !G.geo || G.quiz) return;
+  const n = G.geo.hot.length;
+  G.sel = G.sel == null ? 0 : (G.sel + dir + n) % n;
+  renderInfo();
+}
+
+function targetIndex() {
+  const ph = G.phase, f = G.f;
+  if (G.scenario === 'departure') return ph === 'exit' ? 2 : 1;
+  const map = {inbound:2, takeoff:1, upwind:1, crosswind:2, base:5, final:6, rollout:7, exiting:7};
+  if (ph === 'downwind') return f.abeamPassed ? 4 : 3;
+  return map[ph] ?? -1;
+}
+
+function drawSim() {
+  if (!cw) return;
+  const ex = G && G.scenario === 'explore', c = ctx;
+  drawMap(c, cw, ch, {guide: G && (ex || G.mode !== 'checkride'), ghost: G && !ex && G.mode === 'guided', labels: true, animate: true, legLabels: !(ex && G.quiz)});
+  if (!G || !G.geo) return;
+  const Vw = view(cw, ch);
+  if (ex) { if (G.quiz) drawQuizMarks(c, Vw); else drawHotspots(c, Vw, true); return; }
+  if (G.track.length > 1) {
+    c.strokeStyle = 'rgba(163,36,106,.55)'; c.lineWidth = 2; c.beginPath();
+    G.track.forEach((q, i) => i ? c.lineTo(Vw.X(q.x), Vw.Y(q.y)) : c.moveTo(Vw.X(q.x), Vw.Y(q.y))); c.stroke();
+  }
+  if (G.mode !== 'checkride' && !G.ended) drawHotspots(c, Vw, false);
+  G.traffic.forEach(ai => {
+    drawPlane(c, Vw.X(ai.x), Vw.Y(ai.y), ai.hdg, 24, '#3B7DC4', '#0E2440', ai.alt - FIELD, '#FFFFFF');
+    tag(c, `${ai.name}  ${fmt(Math.round(ai.alt / 10) * 10)} ft`, Vw.X(ai.x), Vw.Y(ai.y) - 26, 'rgba(47,111,181,.94)', '#FFFFFF');
+  });
+  const p = G.plane;
+  if (p) drawPlane(c, Vw.X(p.x), Vw.Y(p.y), p.hdg, 30, '#FFFFFF', '#1B2433', p.alt - FIELD, '#A3246A');
+}
+
+/* ---------- instruments ---------- */
+function targetInfo() {
+  const g = G.geo, f = G.f, sH = hdgOf(g.s), nsH = hdgOf({x: -g.s.x, y: -g.s.y});
+  switch (G.phase) {
+    case 'inbound': return {text: 'Descend to 1,700 ft, follow the 45°', hdg: g.entryHdg};
+    case 'takeoff': return {text: 'Full power, right rudder, lift off at 55 kt', hdg: g.rwHdg};
+    case 'upwind': return {text: G.scenario === 'closed' || G.f.wentAround ? 'Climb past the runway end to 1,400+ ft' : 'Climb straight out to 1,700 ft', hdg: g.rwHdg};
+    case 'crosswind': return {text: 'Climb to 1,700 ft', hdg: sH};
+    case 'downwind': return f.abeamPassed ? {text: f.powerOk ? `Turn ${g.sw} base at the 45° point` : '1,500 RPM, flaps 10°, start down', hdg: g.dwHdg} : {text: 'Hold 1,700 ft', hdg: g.dwHdg};
+    case 'base': return {text: 'Flaps 20°, keep descending', hdg: nsH};
+    case 'final': return {text: 'PAPI: 2 white, 2 red. 65–75 kt', hdg: g.rwHdg};
+    case 'rollout': return {text: 'Slow down, then exit (X)', hdg: null};
+    case 'exit': return {text: 'Climb and fly away', hdg: null};
+  }
+  return null;
+}
+function updatePanel() {
+  if (!G || !G.plane) return;
+  const p = G.plane, agl = Math.max(0, p.alt - FIELD);
+  $('iAlt').innerHTML = `${fmt(Math.round(p.alt / 10) * 10)}<small>ft</small>`;
+  $('iAgl').textContent = `${fmt(Math.round(agl / 10) * 10)} ft above airport`;
+  $('iSpd').innerHTML = `${Math.round(p.spd)}<small>kt</small>`;
+  const tr = G.trend || 0;
+  $('iSpdNote').textContent = p.ground ? 'On the ground' : p.spd < stallSpeed(p) + 6 ? 'Near stall!' : p.spd > 129 ? 'Too fast!' : tr > .4 ? 'Speeding up ▲' : tr < -.4 ? 'Slowing down ▼' : 'Steady';
+  const fd = Math.round((p.flaps || 0) * 10);
+  $('iFlaps').innerHTML = `${fd}<small>°</small>`; $('iFlapsNote').textContent = fd ? (Math.abs((p.flapsT || 0) * 10 - fd) > 1 ? 'Moving…' : 'Down') : 'Up';
+  $('iStall').innerHTML = `${Math.round(stallSpeed(p))}<small>kt</small>`; $('flapLbl').textContent = `${fd}°`;
+  const bl = p.ground ? 0 : (p.ball || 0), rd = p.rud || 0;
+  $('iBall').style.left = `${50 + clamp(bl, -1.2, 1.2) * 38}%`;
+  $('iRud').textContent = rd > .12 ? `Right ${Math.round(rd * 100)}%` : rd < -.12 ? `Left ${Math.round(-rd * 100)}%` : 'Centered';
+  $('iBallNote').textContent = p.ground ? 'Steer with the rudder' : Math.abs(bl) < .35 ? 'Ball centered ✓' : bl < 0 ? 'Step on the left rudder' : 'Step on the right rudder';
+  updateCue();
+  $('iHdg').innerHTML = `${pad3(p.hdg)}<small>°</small>`;
+  $('iHdgNote').textContent = 'Toward the ' + compass(p.hdg);
+  const vs = Math.round(p.vs / 50) * 50;
+  $('iVs').innerHTML = `${vs > 0 ? '+' : ''}${fmt(vs)}<small>fpm</small>`;
+  $('iVsNote').textContent = vs > 50 ? 'Climbing' : vs < -50 ? 'Descending' : 'Level';
+  $('iRpm').innerHTML = `${fmt(Math.round((700 + p.power * 1800) / 10) * 10)}<small>RPM</small>`;
+  $('iPow').style.width = Math.round(p.power * 100) + '%';
+  $('iLeg').textContent = LEG[G.phase] || '–';
+  const tg = G.mode !== 'checkride' ? targetInfo() : null;
+  if (tg && tg.hdg != null) $('iHdgNote').textContent = `Target heading ${pad3(tg.hdg)}`;
+  const hudKey = G.phase + '|' + (tg ? tg.text : '') + '|' + inGrace();
+  if (hudKey !== G.hudKey) { G.hudKey = hudKey;
+    $('legTag').innerHTML = `<b></b><span></span>${inGrace() ? '<em class="get">Get set…</em>' : ''}`;
+    $('legTag').querySelector('b').textContent = LEG[G.phase] || '';
+    $('legTag').querySelector('span').textContent = tg ? tg.text : ''; }
+  updateCoach();
+}
+
+/* ---------- debrief ---------- */
+function endFlight(reason) {
+  if (G.ended) return;
+  G.ended = true; G.running = false; G.endReason = reason;
+  for (const k in keys) keys[k] = false;
+  $('btnExit').hidden = true; closeModal();
+  const good = reason === 'complete';
+  showWarn(good ? 'Flight complete! Your debrief is coming up…' : 'Flight over. Your debrief is coming up…', good ? 'good' : 'alert');
+  const myG = G; setTimeout(() => { if (G === myG && !$('scrSim').hidden) showDebrief(reason); }, 2500);
+}
+function showDebrief(reason) {
+  const s = score();
+  $('dPct').textContent = s.pct;
+  $('dGrade').textContent = s.pct >= 90 ? 'Checkride ready!' : s.pct >= 75 ? 'Solid flying. Polish the items below.' : s.pct >= 50 ? 'Getting there. Try another pattern.' : 'Keep practicing. Guided mode will walk you through each step.';
+  $('dReason').textContent = {
+    complete: 'Flight complete.',
+    short: 'The flight ended: you touched down before reaching the runway (landed short). Keep a little more power and altitude on final.',
+    offrw: 'The flight ended: you touched down off the side of the runway. Line up with the centerline before you get low.',
+    ground: 'The flight ended: the airplane got too low and touched the ground away from the runway.',
+    left: 'The flight ended: you flew too far from the airport.',
+    runoff: 'The flight ended: you rolled off the side of the runway. Steer on the ground with the rudder. On takeoff, hold right rudder because the airplane pulls left at full power.',
+    missed: 'The flight ended: you flew past the runway without landing. In a real airplane, add full power and go around.'
+  }[reason];
+  const ul = $('dItems'); ul.innerHTML = '';
+  s.items.forEach(it => {
+    const li = document.createElement('li'); li.className = it.ok ? 'ok' : 'no';
+    li.innerHTML = `<div class="head"><span><span class="mark">${it.ok ? '✓' : '✗'}</span></span><span class="pts">${it.earned} / ${it.pts}</span></div>`;
+    li.querySelector('.head span span').after(document.createTextNode(it.label));
+    if (!it.ok && it.tip) { const pp = document.createElement('p'); pp.textContent = it.tip; li.appendChild(pp); }
+    ul.appendChild(li);
+  });
+  $('debrief').hidden = false; $('debrief').scrollTop = 0;
+  G.replayStart = performance.now();
+  requestAnimationFrame(drawProfile);
+  $('dAgain').focus();
+}
+
+function score() {
+  const f = G.f, g = G.geo, items = [];
+  const add = (label, pts, earned, tip, reached = true) => {
+    const e = reached ? clamp(Math.round(earned), 0, pts) : 0;
+    items.push({label, pts, earned: e, ok: e >= pts, tip: reached ? tip : 'You didn’t reach this step on this flight.'});
+  };
+  add('Chose the runway into the wind', 10, f.rwOk ? 10 : 0, `The windsock’s tail streams away from the wind. The wind was from ${pad3(G.wind.from)}°, so Runway ${G.best} faced into it.`);
+  if (G.scenario !== 'departure') {
+    if (G.scenario === 'arrival') {
+      const e = f.entry, tips = [];
+      if (e && !e.angleOk) tips.push('Fly the 45° line into downwind instead of cutting straight in.');
+      if (e && !e.altOk) tips.push('Be level at 1,700 ft before you join.');
+      if (e && !e.midOk) tips.push('Join downwind near midfield, the middle of the runway.');
+      add('Entered on the 45° at pattern altitude, at midfield', 15, e ? (e.angleOk * 5 + e.altOk * 5 + e.midOk * 5) : 0, tips.join(' '), !!e);
+    } else {
+      const x = f.xw, tips = [];
+      if (x && !x.past) tips.push('Climb straight ahead until you’re past the end of the runway before turning.');
+      if (x && !x.alt) tips.push('Don’t turn crosswind until you’re within 300 ft of pattern altitude (1,400 ft or higher).');
+      if (x && !x.side) tips.push(`This runway uses ${g.sw} traffic, so the crosswind turn is to the ${g.sw}.`);
+      add('Turned crosswind past the runway end, within 300 ft of pattern altitude', 15, x ? (x.past * 5 + x.alt * 5 + x.side * 5) : 0, tips.join(' '), !!x);
+    }
+    const ratio = G.dw.n ? G.dw.good / G.dw.n : 0;
+    add('Held 1,700 ft (±100 ft) on downwind', 15, ratio >= .8 ? 15 : 15 * ratio, 'Make small, early corrections. Watch the altimeter and tap ▲ or ▼ as soon as you start to drift, then Level off.', G.dw.n > 0);
+    add('Completed the pre-landing checklist', 5, f.checklist ? 5 : 0, 'Run the checklist on downwind, before you reduce power.', !!f.checklistShown);
+    add('Reduced power and started down abeam the numbers', 10, f.powerOk ? 10 : 0, 'When the runway numbers are off your wingtip, reduce power to about 1,500 RPM and start down about 500 ft per minute.', !!f.abeamPassed);
+    const bu = f.baseU, ideal = -(L/2 + D);
+    let baseTip = '';
+    if (bu != null) baseTip = bu > ideal + 1700 ? 'You turned base early. Wait until the end of the runway is about 45° behind your wingtip.' : 'You flew too far before turning base. Turn when the end of the runway is about 45° behind your wingtip.';
+    add('Turned base at the right spot (runway end 45° behind)', 10, bu != null && bu >= ideal - 1700 && bu <= ideal + 1700 ? 10 : 0, baseTip, bu != null);
+    add('Turned final without overshooting the centerline', 10, f.finalReached && !f.overshoot ? 10 : 0, 'Start the turn to final a little before the centerline. If you’re going to overshoot, don’t steepen the bank to fix it: go around and try again.', !!f.finalReached);
+    const ap = G.ap || {n: 0}, ld = f.landing, rt = k => ap.n ? ap[k] / ap.n : 0;
+    add('Stayed on the 3° glidepath (PAPI)', 10, rt('gp') >= .7 ? 10 : 10 * rt('gp') / .7, `You were within one light of “two white, two red” ${Math.round(rt('gp') * 100)}% of the time. More white means too high, so reduce power. More red means too low, so add power.`, ap.n > 0);
+    add('Stayed lined up with the centerline', 5, rt('cl') >= .7 ? 5 : 5 * rt('cl') / .7, 'Make small, early turns to keep the centerline pointing straight at you.', ap.n > 0);
+    add('Held approach speed (65 to 75 kt)', 5, rt('spd') >= .7 ? 5 : 5 * rt('spd') / .7, 'Use power to fix speed on final: a little more if slow, a little less if fast.', ap.n > 0);
+    add('Flared before touchdown', 5, ld && ld.flared ? 5 : 0, 'About 10 to 20 ft above the runway, ease the nose up (hold ▲) to slow your descent.', !!ld);
+    add(ld ? `Gentle touchdown (yours was ${ld.rating}, ${fmt(Math.abs(Math.round(ld.sink / 10) * 10))} ft per minute)` : 'Gentle touchdown', 5, ld ? (ld.rating === 'gentle' ? 5 : ld.rating === 'firm' ? 3 : 0) : 0, 'Flare to slow your descent to less than about 350 ft per minute before the wheels touch.', !!ld);
+    const landTips = [];
+    if (ld && !ld.tdz) landTips.push('Aim for the aiming-point stripes and touch down within the first 1,500 ft.');
+    if (ld && ld.cl > 25) landTips.push(`You touched down ${Math.round(ld.cl)} ft from the centerline. Keep the centerline between your wheels.`);
+    if (!ld) landTips.push('Land on the runway. Line up early and follow the PAPI down to the aiming point.');
+    const reachedLanding = !!ld || ['short','offrw','missed'].includes(G.endReason);
+    add('Landed in the touchdown zone, on the centerline', 15, ld ? 8 + (ld.tdz ? 4 : 0) + (ld.cl <= 25 ? 3 : 0) : 0, landTips.join(' '), reachedLanding);
+    if (f.goArounds) add(`Went around when the approach wasn’t right (${f.goArounds} time${f.goArounds === 1 ? '' : 's'}): a good decision`, 5, 5, '');
+  } else {
+    const dp = f.dep;
+    add('Climbed straight out past the end of the runway', 10, dp && dp.past ? 10 : 0, 'Keep climbing straight ahead until you’re past the departure end of the runway.', !!dp);
+    add('Reached pattern altitude before turning', 15, dp && dp.alt ? 15 : 0, 'Wait until you reach pattern altitude (1,700 ft) before turning out of the pattern.', !!dp);
+    const sh = f.depShape;
+    add('Departed straight out or with a 45° turn toward the pattern side', 15, sh === 'straight' || sh === '45' ? 15 : sh === 'other' ? 5 : 0,
+      sh === 'other' ? `That turn was bigger than 45°. A 90° turn looks like a crosswind turn to other pilots. Use about 45°.` : `Depart straight out, or turn 45° the same way as the pattern: to the ${g.sw} on Runway ${g.rw}.`, !!sh);
+  }
+  if (!settings.rudAuto) {
+    const cr = G.coord && G.coord.n ? G.coord.good / G.coord.n : 0;
+    add('Kept the ball centered (used rudder with your turns)', 5, cr >= .7 ? 5 : 5 * cr / .7, `The ball was centered ${Math.round(cr * 100)}% of the time. Step on the ball: if it slides left, add left rudder; if it slides right, add right rudder. Turn with aileron and rudder together.`, !!(G.coord && G.coord.n));
+    if (G.scenario !== 'arrival') add('Kept the takeoff roll on the centerline', 5, (G.f.toMaxOff || 0) <= 25 ? 5 : (G.f.toMaxOff || 0) <= 50 ? 3 : 0, `You drifted ${Math.round(G.f.toMaxOff || 0)} ft from the centerline. At full power the airplane pulls left, so hold right rudder as you speed up.`, G.f.toMaxOff != null);
+  }
+  const missed = [...new Set(G.radio.missed)];
+  add('Made the correct radio calls', 15, G.radio.n ? 15 * G.radio.ok / G.radio.n : 0,
+    `Review these calls: ${missed.join(', ').toLowerCase()}. Every CTAF call goes: who you’re calling (“${APT} traffic”), who you are, where you are, what you’re doing, then the airport name again.`, G.radio.n > 0);
+  if (G.traffic.length) add('Kept safe spacing from other airplanes', 5, 5 - 2 * G.conflicts,
+    `You got too close to other airplanes ${G.conflicts} time${G.conflicts === 1 ? '' : 's'}. Reduce power a little to slow down, or widen your downwind, so you stay behind the airplane ahead.`);
+  const total = items.reduce((a, b) => a + b.pts, 0), earned = items.reduce((a, b) => a + b.earned, 0);
+  return {items, pct: Math.round(100 * earned / total)};
+}
+
+const rc = $('replay'), rctx = rc.getContext('2d');
+function drawReplay() {
+  const r = rc.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (rc.width !== Math.round(r.width * dpr) || rc.height !== Math.round(r.height * dpr)) { rc.width = Math.round(r.width * dpr); rc.height = Math.round(r.height * dpr); }
+  rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = r.width, h = r.height;
+  drawMap(rctx, w, h, {guide: false, ghost: true, labels: false, animate: false, legLabels: false});
+  if (!G.geo) return;
+  const Vw = view(w, h), tr = G.track;
+  const frac = reduceMotion ? 1 : clamp((performance.now() - G.replayStart) / 6000, 0, 1);
+  const n = Math.max(1, Math.floor(tr.length * frac));
+  if (tr.length > 1) {
+    rctx.strokeStyle = '#A3246A'; rctx.lineWidth = 3.5; rctx.lineJoin = 'round';
+    rctx.beginPath(); for (let i = 0; i < n; i++) i ? rctx.lineTo(Vw.X(tr[i].x), Vw.Y(tr[i].y)) : rctx.moveTo(Vw.X(tr[i].x), Vw.Y(tr[i].y)); rctx.stroke();
+    const a = tr[Math.max(0, n - 2)], b = tr[n - 1];
+    const hd = (a.x === b.x && a.y === b.y) ? G.plane.hdg : hdgOf({x: b.x - a.x, y: b.y - a.y});
+    drawPlane(rctx, Vw.X(b.x), Vw.Y(b.y), hd, 26, '#FFFFFF', '#1B2433', 0, '#A3246A');
+  }
+}
+
+/* ---------- input ---------- */
+const keyMap = {n:'rudL', N:'rudL', m:'rudR', M:'rudR', z:'lookL', Z:'lookL', c:'lookR', C:'lookR', ArrowLeft:'left', a:'left', A:'left', ArrowRight:'right', d:'right', D:'right', ArrowUp:'up', w:'up', W:'up', ArrowDown:'down', s:'down', S:'down', e:'pUp', E:'pUp', '+':'pUp', '=':'pUp', q:'pDown', Q:'pDown', '-':'pDown', _:'pDown'};
+window.addEventListener('keydown', ev => {
+  if ($('scrSim').hidden || !$('debrief').hidden) return;
+  if (!overlay.hidden) {
+    if (/^[1-4]$/.test(ev.key)) { const b = modal.querySelectorAll('.calls button, .choices button')[+ev.key - 1]; if (b) { ev.preventDefault(); b.click(); } }
+    return;
+  }
+  if (settings.ctl === 'buttons' && !(G && G.scenario === 'explore')) { if (ev.key === ' ' || /^arrow/i.test(ev.key)) ev.preventDefault(); return; }
+  if (ev.key === '?' || ev.key === 'h' || ev.key === 'H') { showKeys(); return; }
+  if (G && G.scenario === 'explore') { if (ev.key === 'ArrowRight') { ev.preventDefault(); stepSel(1); } else if (ev.key === 'ArrowLeft') { ev.preventDefault(); stepSel(-1); } return; }
+  const k = mapKey(ev);
+  if (k) { ev.preventDefault(); if (settings.ctl !== 'buttons') keys[k] = true; return; }
+  if ((ev.key === 'f' || ev.key === 'F') && settings.ctl !== 'buttons') { fullPower(); return; }
+  if (ev.key === 'l' || ev.key === 'L') { if (G && G.plane && !G.plane.ground) G.plane.vsT = 0; }
+  else if (ev.key === 'p' || ev.key === 'P' || ev.key === ' ') { ev.preventDefault(); togglePause(); }
+  else if (ev.key === 'x' || ev.key === 'X') exitRunway();
+  else if (ev.key === 'v' || ev.key === 'V') setFlaps(1);
+  else if (ev.key === 'r' || ev.key === 'R') setFlaps(-1);
+  else if (ev.key === 'g' || ev.key === 'G') goAround();
+});
+window.addEventListener('keyup', ev => { const k = mapKey(ev); if (k) keys[k] = false; });
+function mapKey(ev) { let k = keyMap[ev.key]; if (settings.invert && (k === 'up' || k === 'down')) k = k === 'up' ? 'down' : 'up'; return k; }
+function fullPower() { if (G && G.plane && G.running) G.plane.power = 1; }
+$('btnFull').onclick = fullPower;
+$('btnFlapUp').onclick = () => setFlaps(-1);
+$('btnFlapDn').onclick = () => setFlaps(1);
+function showKeys() {
+  if (!G || $('scrSim').hidden || !overlay.hidden) return;
+  const c = settings.invert ? ['↓ or S', '↑ or W'] : ['↑ or W', '↓ or S'];
+  openModal(`<h2>Keyboard controls</h2>
+    <table class="keytable"><tbody>
+      <tr><td><kbd>←</kbd> <kbd>A</kbd> / <kbd>→</kbd> <kbd>D</kbd></td><td>Turn left / right with the ailerons (hold). Tap for small corrections.</td></tr>
+      <tr><td><kbd>N</kbd> / <kbd>M</kbd></td><td>Left / right rudder (hold): yaws the nose, keeps the ball centered in turns, and steers on the ground</td></tr>
+      <tr><td>${c[0]}</td><td>Climb (hold). On the runway, lifts off at 55 knots.</td></tr>
+      <tr><td>${c[1]}</td><td>Descend (hold)</td></tr>
+      <tr><td><kbd>L</kbd></td><td>Level off (hold your current altitude)</td></tr>
+      <tr><td><kbd>E</kbd> or <kbd>+</kbd></td><td>More power (hold)</td></tr>
+      <tr><td><kbd>Q</kbd> or <kbd>−</kbd></td><td>Less power (hold)</td></tr>
+      <tr><td><kbd>F</kbd></td><td>Full power (for takeoff)</td></tr>
+      <tr><td><kbd>Z</kbd> / <kbd>C</kbd></td><td>Look out the left / right window (hold)</td></tr>
+      <tr><td><kbd>G</kbd></td><td>Go around (on final, in the cockpit view)</td></tr>
+      <tr><td><kbd>V</kbd> / <kbd>R</kbd></td><td>Flaps down / up, one notch at a time (0°, 10°, 20°, 30°)</td></tr>
+      <tr><td><kbd>X</kbd></td><td>Exit the runway after landing</td></tr>
+      <tr><td><kbd>P</kbd> or <kbd>Space</kbd></td><td>Pause / resume</td></tr>
+      <tr><td><kbd>1</kbd> to <kbd>4</kbd></td><td>Pick an answer in a radio call</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Continue, or check the next checklist item</td></tr>
+      <tr><td><kbd>?</kbd></td><td>Show this list</td></tr>
+    </tbody></table>
+    <div class="mrow"><button class="primary" id="mCont">Back to flying</button></div>`);
+  $('mCont').onclick = closeModal;
+}
+$('btnKeys').onclick = showKeys;
+document.addEventListener('visibilitychange', () => { if (document.hidden && G && G.running && !G.paused) togglePause(); });
+window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+document.querySelectorAll('.ctl[data-k]').forEach(b => {
+  const k = b.dataset.k;
+  const on = ev => {
+    ev.preventDefault(); keys[k] = true; b.classList.add('on');
+    try { b.setPointerCapture(ev.pointerId); } catch (_) {}
+    if (G && G.plane && G.running && (k === 'pUp' || k === 'pDown')) G.plane.power = clamp(G.plane.power + (k === 'pUp' ? .04 : -.04), 0, 1);
+  };
+  const off = () => { keys[k] = false; b.classList.remove('on'); };
+  b.addEventListener('pointerdown', on);
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => b.addEventListener(t, off));
+  b.addEventListener('contextmenu', e => e.preventDefault());
+});
+$('btnLevel').onclick = () => { if (G && G.plane && !G.plane.ground) G.plane.vsT = 0; };
+
+/* ---------- cockpit view (final approach and landing) ---------- */
+const RW3 = 150;
+const TAXI_KT = 25;                              // taxi speed after landing, knots                                // real runway width used in the cockpit view, feet
+const ckCanvas = $('cockpit'), ck = ckCanvas.getContext('2d');
+const tsNow = () => (G && G.ck && G.ck.on && (G.phase === 'final' || G.phase === 'rollout' || G.phase === 'exiting')) ? Math.min(TS, 1.25) : TS;
+const SEGS = {A:[0,1,1.45,1.6], B:[.8,1,.8,1.6], C:[.8,1,0,.8], D:[0,1,0,.15], E:[0,.2,0,.8], F:[0,.2,.8,1.6], G:[0,1,.73,.87]};
+const DIGS = {'2':'ABGED', '7':'ABC', '9':'ABCDFG'};
+const PAPI_SET = [3.5, 3.1667, 2.8333, 2.5];   // inner (nearest runway) to outer, degrees
+
+function papi() {
+  const p = G.plane, d = vec(G.geo.rwHdg);
+  const ax = -d.x * L/2 + d.x * 1000, ay = -d.y * L/2 + d.y * 1000;    // PAPI abeam the aiming point
+  const dist = Math.max(1, Math.hypot(p.x - ax, p.y - ay)), agl = Math.max(0, p.alt - FIELD);
+  const ang = Math.atan2(agl, dist) / RAD, lights = PAPI_SET.map(s => ang > s);
+  return {ang, lights, white: lights.filter(Boolean).length};
+}
+
+function cockpitOn() {
+  if (!G || !G.plane) return;
+  G.ck.on = true; G.ck.onAt = performance.now(); G.ck.look = 0; G.ck.pitch = 0; G.ck.bank = 0;
+  $('cockpit').classList.add('on'); $('mapwrap').classList.add('ckmode'); G.hudKey = '';
+}
+function enterCockpit() {          // called after the "turning final" call: start scoring the approach
+  if (!G || G.ended || G.phase !== 'final' || !G.plane) return;
+  if (!G.ck.on) cockpitOn();
+  G.ap = {n: 0, gp: 0, cl: 0, spd: 0}; G.prof = []; G.profT = 0; G.f.flareMsg = false; G.plane.flare = 0;
+  $('btnGA').hidden = false; G.graceUntil = G.t + 3;
+}
+function exitCockpit() {
+  if (G && G.ck) G.ck.on = false;
+  $('cockpit').classList.remove('on'); $('mapwrap').classList.remove('ckmode'); $('btnGA').hidden = true;
+  if (G) G.hudKey = '';
+}
+function goAround() {
+  if (!G || !G.ck || !G.ck.on || G.phase !== 'final' || G.ended || !overlay.hidden || !G.running || G.plane.ground) return;
+  const p = G.plane, g = G.geo;
+  p.power = 1; p.vsT = 650; p.flapsT = Math.min(p.flapsT || 0, 1); p.flare = 0; p.hdg = g.rwHdg; p.tr = 0;
+  G.f.goArounds = (G.f.goArounds || 0) + 1; G.f.wentAround = true;
+  Object.assign(G.f, {abeamPassed: false, powerOk: false, baseU: null, overshoot: false, finalReached: false});
+  $('btnGA').hidden = true; setPhase('upwind');
+  logRadio('You', `${APT} traffic, ${ME}, going around runway ${g.rw}, ${APT}.`, true);
+  showWarn('Going around! Full power, climb straight ahead.', 'good');
+}
+$('btnGA').onclick = goAround;
+
+function clipNear(pts, n) {
+  const out = [];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[i], b = pts[(i + 1) % pts.length], ain = a.z >= n, bin = b.z >= n;
+    if (ain) out.push(a);
+    if (ain !== bin) { const t = (n - a.z) / (b.z - a.z); out.push({x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: n}); }
+  }
+  return out;
+}
+
+function drawCockpit() {
+  const c = ck, w = cw, h = ch, p = G.plane, g = G.geo;
+  if (!p || !w) return;
+  const panelH = clamp(h * .26, 100, 200), vh = h - panelH, cx = w / 2, cy = vh * .5;
+  const fpx = (vh / 2) / Math.tan(18 * RAD);
+  const eye = Math.max(0, p.alt - FIELD) + 7;
+  const look = G.ck.look || 0, hd = (p.hdg + look) * RAD, fw = {x: Math.sin(hd), y: Math.cos(hd)}, rt = {x: Math.cos(hd), y: -Math.sin(hd)};
+  const th = G.ck.pitch * RAD, ph = G.ck.bank * RAD, ct = Math.cos(th), st = Math.sin(th), cpp = Math.cos(ph), spp = Math.sin(ph);
+  const cam = (X, Y, Z) => {
+    const dx = X - p.x, dy = Y - p.y, dz = Z - eye, xc = dx * rt.x + dy * rt.y, zc = dx * fw.x + dy * fw.y;
+    const y1 = dz * ct - zc * st, z1 = zc * ct + dz * st;
+    return {x: xc * cpp - y1 * spp, y: xc * spp + y1 * cpp, z: z1};
+  };
+  const scr = q => [cx + fpx * q.x / q.z, cy - fpx * q.y / q.z];
+  const poly = (pts, fill) => {
+    let cs = pts.map(q => cam(q[0], q[1], q[2] || 0)); cs = clipNear(cs, 2);
+    if (cs.length < 3) return;
+    c.beginPath(); cs.forEach((q, i) => { const [sx, sy] = scr(q); i ? c.lineTo(sx, sy) : c.moveTo(sx, sy); }); c.closePath();
+    c.fillStyle = fill; c.fill();
+  };
+  const rect = (x0, x1, y0, y1, fill) => poly([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], fill);
+  const ribbon = (pts, wid, fill) => { for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], ln = Math.hypot(dx, dy) || 1, nx = -dy / ln * wid / 2, ny = dx / ln * wid / 2;
+    poly([[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]], fill); } };
+  const oval = (ox, oy, rx, ry, rot, fill) => { const pts = []; for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2, ex = Math.cos(a) * rx, ey = Math.sin(a) * ry;
+    pts.push([ox + ex * Math.cos(rot) - ey * Math.sin(rot), oy + ex * Math.sin(rot) + ey * Math.cos(rot)]); } poly(pts, fill); };
+
+  c.save(); c.beginPath(); c.rect(0, 0, w, vh); c.clip();
+  const sky = c.createLinearGradient(0, 0, 0, vh); sky.addColorStop(0, '#5B95D5'); sky.addColorStop(.6, '#A8CBEC'); sky.addColorStop(1, '#DDEBF5');
+  c.fillStyle = sky; c.fillRect(0, 0, w, vh);
+  // ground in bands, lighter far away for haze
+  [[400000, '#B4C8A2'], [60000, '#9FBC82'], [20000, '#93B574']].forEach(([B, col]) => rect(p.x - B, p.x + B, p.y - B, p.y + B, col));
+  // fields
+  SCENERY.fields.forEach(f => {
+    const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => { const sx = a * f.w / 2, sy = b * f.h / 2;
+      const ox = sx * Math.cos(f.a) - sy * Math.sin(f.a), oy = sx * Math.sin(f.a) + sy * Math.cos(f.a); return [f.x + ox, f.y - oy]; });
+    poly(corners, f.c);
+  });
+  // river, lake, roads
+  const riv = []; for (let i = 0; i <= 24; i++) { const t = i / 24, mt = 1 - t;
+    const P0 = [-19000, -9500], P1 = [-5000, -4200], P2 = [3000, -12500], P3 = [19000, -8500];
+    riv.push([mt*mt*mt*P0[0] + 3*mt*mt*t*P1[0] + 3*mt*t*t*P2[0] + t*t*t*P3[0], mt*mt*mt*P0[1] + 3*mt*mt*t*P1[1] + 3*mt*t*t*P2[1] + t*t*t*P3[1]]); }
+  ribbon(riv, 200, '#7FB0D8');
+  oval(8800, 8600, 2300, 1300, -.2, '#8DBBE0');
+  ribbon([[-19000, 700], [-6000, 6400], [19000, 11900]], 60, '#7D7469');
+  oval(-8800, 7800, 2100, 1500, .2, '#D9CB98');
+
+  // airport surfaces
+  const PV = '#80878E', YL = '#E7C230';
+  const polyP = (P, col, z) => poly(P.map(q => [q.x, q.y, z || 0]), col);
+  const stripe = (cx, cy, ax, ay, half, bx, by, th, col) => poly([[cx - ax * half, cy - ay * half], [cx + ax * half, cy + ay * half], [cx + ax * half + bx * th, cy + ay * half + by * th], [cx - ax * half + bx * th, cy - ay * half + by * th]], col);
+  rect(-L/2 - 500, L/2 + 500, -500, 1250, '#A4C483');
+  rect(1250, 1600, 640, 900, '#8C9197');
+  rect(AP.apron.x0, AP.apron.x1, AP.apron.y0, AP.apron.y1, '#AEB3B8');
+  AP.links.forEach(x => rect(x - AP.HW, x + AP.HW, AP.TWY_Y, AP.apron.y0, PV));
+  rect(-2200, 2200, AP.TWY_Y - AP.HW, AP.TWY_Y + AP.HW, PV);
+  AP.cons.forEach(cn => polyP(cn.poly, PV));
+  // taxiway centerlines
+  rect(-2200, 2200, AP.TWY_Y - 1, AP.TWY_Y + 1, YL);
+  AP.links.forEach(x => rect(x - 1, x + 1, AP.TWY_Y, AP.apron.y0, YL));
+  AP.cons.forEach(cn => poly([[cn.a.x - cn.n.x, cn.a.y - 60 - cn.n.y], [cn.a.x + cn.n.x, cn.a.y - 60 + cn.n.y], [cn.b.x + cn.n.x, cn.b.y + cn.n.y], [cn.b.x - cn.n.x, cn.b.y - cn.n.y]], YL));
+  // hold-short markings: two solid lines on the taxiway side, two dashed lines on the runway side
+  AP.cons.forEach(cn => {
+    const h = cn.hold, ax = cn.n.x, ay = cn.n.y, bx = cn.dir.x, by = cn.dir.y, w = cn.holdHalf - 6;
+    [5, 11].forEach(o => stripe(h.x + bx * o, h.y + by * o, ax, ay, w, bx, by, 2.5, YL));
+    [-1, -7].forEach(o => { for (let t = -w; t < w; t += 12) stripe(h.x + bx * o + ax * (t + 3), h.y + by * o + ay * (t + 3), ax, ay, 3, bx, by, 2.5, YL); });
+  });
+  // blast pads with yellow chevrons beyond each end
+  [-1, 1].forEach(sd => { const x0 = sd * L/2, x1 = sd * (L/2 + 200);
+    rect(Math.min(x0, x1), Math.max(x0, x1), -RW3 / 2, RW3 / 2, '#5D635E');
+    [40, 100, 160].forEach(o => { const ax = sd * (L/2 + o);
+      poly([[ax, 0], [ax + sd * 40, 55], [ax + sd * 52, 55], [ax + sd * 12, 0]], YL);
+      poly([[ax, 0], [ax + sd * 40, -55], [ax + sd * 52, -55], [ax + sd * 12, 0]], YL); }); });
+  rect(-L/2, L/2, -RW3 / 2, RW3 / 2, '#3F454C');
+  const W = '#F2F2F2';
+  rect(-L/2, L/2, RW3 / 2 - 5, RW3 / 2 - 2, W); rect(-L/2, L/2, -RW3 / 2 + 2, -RW3 / 2 + 5, W);
+  for (let i = 0; i < 4; i++) { const a = 8 + i * 16, b = a + 11;
+    [[-L/2 + 20, -L/2 + 170], [L/2 - 170, L/2 - 20]].forEach(([x0, x1]) => { rect(x0, x1, a, b, W); rect(x0, x1, -b, -a, W); }); }
+  for (let x = -L/2 + 340; x < L/2 - 460; x += 200) rect(x, x + 120, -2, 2, W);
+  [[-L/2 + 1000, -L/2 + 1150], [L/2 - 1150, L/2 - 1000]].forEach(([x0, x1]) => { rect(x0, x1, 18, 38, W); rect(x0, x1, -38, -18, W); });
+  [['9', 90], ['27', 270]].forEach(([txt, H]) => {
+    const up = vec(H), rg = vec(H + 90), ex = -up.x * L/2, ey = -up.y * L/2, DW = 24, DH = 64, gap = 10;
+    const total = txt.length * DW + (txt.length - 1) * gap;
+    [...txt].forEach((chr, k) => { const a0 = -total / 2 + k * (DW + gap);
+      for (const sg of DIGS[chr]) { const [a1, a2, b1, b2] = SEGS[sg];
+        const pt = (a, b) => [ex + rg.x * (a0 + a * DW) + up.x * (200 + b * DH / 1.6), ey + rg.y * (a0 + a * DW) + up.y * (200 + b * DH / 1.6)];
+        poly([pt(a1, b1), pt(a2, b1), pt(a2, b2), pt(a1, b2)], W); } });
+  });
+  // segmented circle on the ground
+  for (let k2 = 0; k2 < 8; k2++) { const a0 = (k2 * 45 + 8) * RAD, a1 = (k2 * 45 + 37) * RAD;
+    poly([[SEG_X + Math.cos(a0) * 50, SEG_Y + Math.sin(a0) * 50], [SEG_X + Math.cos(a1) * 50, SEG_Y + Math.sin(a1) * 50], [SEG_X + Math.cos(a1) * 62, SEG_Y + Math.sin(a1) * 62], [SEG_X + Math.cos(a0) * 62, SEG_Y + Math.sin(a0) * 62]], '#F4F4F4'); }
+  // parked airplanes on the ramp
+  [[-650, 820, 180], [-470, 820, 180], [-290, 820, 180], [280, 860, 0], [460, 860, 0], [640, 860, 0]].forEach(([px, py, ph2]) => {
+    const fv = vec(ph2), rv = vec(ph2 + 90), Q = (a, b) => [px + rv.x * a + fv.x * b, py + rv.y * a + fv.y * b, 1];
+    poly([Q(-18, 0), Q(18, 0), Q(18, 5), Q(-18, 5)], '#F4F4F4'); poly([Q(-2, -15), Q(2, -15), Q(2, 11), Q(-2, 11)], '#E8E8E8'); poly([Q(-6, -15), Q(6, -15), Q(6, -12), Q(-6, -12)], '#F4F4F4'); });
+  // buildings, far to near
+  const shade = col => col === '#9AA3AC' ? '#848D97' : col === '#D9C9A3' ? '#C2B28C' : '#6E7680';
+  const boxes = [
+    {x0: -700, x1: -350, y0: 960, y1: 1060, h: 45, col: '#9AA3AC', roof: '#6F7883', door: true},
+    {x0: -250, x1: 100, y0: 960, y1: 1060, h: 45, col: '#9AA3AC', roof: '#6F7883', door: true},
+    {x0: 250, x1: 600, y0: 960, y1: 1060, h: 45, col: '#9AA3AC', roof: '#6F7883', door: true},
+    {x0: -1700, x1: -1100, y0: 700, y1: 760, h: 14, col: '#9AA3AC', roof: '#5E6672', tdoors: true},
+    {x0: 930, x1: 1150, y0: 640, y1: 780, h: 22, col: '#D9C9A3', roof: '#6B5A45', fbo: true},
+    {x0: 780, x1: 812, y0: 900, y1: 915, h: 7, col: '#C8102E', roof: '#8E0B20'},
+    {x0: 1146, x1: 1154, y0: 996, y1: 1004, h: 50, col: '#B8BDC2', roof: '#B8BDC2'},
+    ...[[1290, 680, '#C8102E'], [1330, 680, '#2F6FB5'], [1410, 680, '#F4F4F4'], [1290, 760, '#1B2433'], [1370, 760, '#E8C53A'], [1450, 840, '#7A7F86']].map(([x, y, cc]) => ({x0: x, x1: x + 15, y0: y, y1: y + 7, h: 5, col: cc, roof: cc}))
+  ];
+  boxes.map(b => ({b, d: Math.hypot((b.x0 + b.x1) / 2 - p.x, (b.y0 + b.y1) / 2 - p.y)})).sort((a, b2) => b2.d - a.d).forEach(({b}) => {
+    const {x0, x1, y0, y1, h} = b;
+    if (p.y < y0) { poly([[x0, y0, 0], [x1, y0, 0], [x1, y0, h], [x0, y0, h]], b.col);
+      if (b.door) poly([[x0 + 30, y0 - .5, 0], [x1 - 30, y0 - .5, 0], [x1 - 30, y0 - .5, h * .75], [x0 + 30, y0 - .5, h * .75]], '#5B636D');
+      if (b.tdoors) for (let dx = x0 + 10; dx < x1 - 40; dx += 60) poly([[dx, y0 - .5, 0], [dx + 44, y0 - .5, 0], [dx + 44, y0 - .5, h * .8], [dx, y0 - .5, h * .8]], '#6C7480');
+      if (b.fbo) { poly([[x0 + 20, y0 - .5, 3], [x1 - 20, y0 - .5, 3], [x1 - 20, y0 - .5, 12], [x0 + 20, y0 - .5, 12]], '#2D4F6E'); } }
+    if (p.y > y1) poly([[x0, y1, 0], [x1, y1, 0], [x1, y1, h], [x0, y1, h]], b.col);
+    if (p.x < x0) poly([[x0, y0, 0], [x0, y1, 0], [x0, y1, h], [x0, y0, h]], shade(b.col));
+    if (p.x > x1) poly([[x1, y0, 0], [x1, y1, 0], [x1, y1, h], [x1, y0, h]], shade(b.col));
+    if (eye > h) poly([[x0, y0, h], [x1, y0, h], [x1, y1, h], [x0, y1, h]], b.roof);
+  });
+  // PAPI lights, left of the landing runway beside the aiming point
+  const pp = papi(), d = vec(g.rwHdg), lf = vec(g.rwHdg - 90), ax = -d.x * L/2 + d.x * 1000, ay = -d.y * L/2 + d.y * 1000;
+  let papiTagAt = null;
+  [100, 115, 130, 145].forEach((off, i) => {
+    const q = cam(ax + lf.x * off, ay + lf.y * off, 3); if (q.z < 8) return;
+    const [sx, sy] = scr(q), r = Math.max(3, fpx * 3.2 / q.z), col = pp.lights[i] ? '255,255,255' : '255,59,48';
+    c.fillStyle = `rgba(${col},.28)`; c.beginPath(); c.arc(sx, sy, r * 2.8, 0, 7); c.fill();
+    c.fillStyle = `rgb(${col})`; c.beginPath(); c.arc(sx, sy, r, 0, 7); c.fill();
+    if (i === 3) papiTagAt = [sx, sy, q.z];
+  });
+  if (papiTagAt && G.mode === 'guided' && papiTagAt[2] > 700) tag(c, 'PAPI', papiTagAt[0] - 10, papiTagAt[1] - 22, 'rgba(27,36,51,.85)', '#FFFFFF');
+
+  // trees as billboards, far to near
+  const bb = [];
+  SCENERY.trees.forEach(t => t.pts.forEach(q => { const r = q.r * .25, X = t.x + q.dx, Y = t.y + q.dy, cq = cam(X, Y, r); if (cq.z > 40 && cq.z < 60000) bb.push({cq, r}); }));
+  bb.sort((a, b) => b.cq.z - a.cq.z).forEach(({cq, r}) => { const [sx, sy] = scr(cq), rp = fpx * r / cq.z; if (rp < .6) return;
+    c.fillStyle = '#5E8946'; c.beginPath(); c.arc(sx, sy, rp, 0, 7); c.fill();
+    if (rp > 3) { c.fillStyle = 'rgba(255,255,255,.15)'; c.beginPath(); c.arc(sx - rp * .3, sy - rp * .3, rp * .45, 0, 7); c.fill(); } });
+
+  // lights: white runway edge, green or red threshold/end, blue taxiway edge, rotating beacon
+  const lamp = (x, y, z, col, sz, maxD) => { const q = cam(x, y, z); if (q.z < 8 || q.z > (maxD || 9000)) return; const [sx, sy] = scr(q), r = clamp(fpx * (sz || 1) / q.z, .9, 3.5);
+    c.fillStyle = col; c.beginPath(); c.arc(sx, sy, r, 0, 7); c.fill(); };
+  for (let x = -L/2; x <= L/2; x += 200) { lamp(x, RW3 / 2 + 5, 1.5, '#FFF6D8'); lamp(x, -RW3 / 2 - 5, 1.5, '#FFF6D8'); }
+  for (let y = -70; y <= 70; y += 20) { lamp(-L/2 - 5, y, 1.5, p.x < -L/2 ? '#38E07A' : '#FF4B3E'); lamp(L/2 + 5, y, 1.5, p.x > L/2 ? '#38E07A' : '#FF4B3E'); }
+  for (let x = -2200; x <= 2200; x += 150) { lamp(x, AP.TWY_Y - AP.HW - 4, 1.2, '#3D7BFF', 1, 5000); lamp(x, AP.TWY_Y + AP.HW + 4, 1.2, '#3D7BFF', 1, 5000); }
+  AP.cons.forEach(cn => { for (let t = 0; t <= 1; t += .34) [-1, 1].forEach(sd => { const w2 = (AP.HW + 80) * (1 - t) + (AP.HW + 30) * t + 4;
+    lamp(cn.a.x + (cn.b.x - cn.a.x) * t + cn.n.x * w2 * sd, cn.a.y + (cn.b.y - cn.a.y) * t + cn.n.y * w2 * sd, 1.2, '#3D7BFF', 1, 5000); }); });
+  { const q = cam(1150, 1000, 52); if (q.z > 8) { const [sx, sy] = scr(q), on = Math.floor(performance.now() / 650) % 2, r = Math.max(2.5, fpx * 3 / q.z);
+    c.fillStyle = on ? 'rgba(56,224,122,.35)' : 'rgba(255,255,255,.35)'; c.beginPath(); c.arc(sx, sy, r * 3, 0, 7); c.fill();
+    c.fillStyle = on ? '#38E07A' : '#FFFFFF'; c.beginPath(); c.arc(sx, sy, r, 0, 7); c.fill(); } }
+  // windsocks: one in the segmented circle, one beside each runway end
+  const sock3 = (x, y) => {
+    const b0 = cam(x, y, 0), b1 = cam(x, y, 22); if (b0.z < 10 || b1.z < 10 || b0.z > 12000) return;
+    const [x0, y0] = scr(b0), [xT, yT] = scr(b1);
+    c.strokeStyle = '#3A3F46'; c.lineWidth = Math.max(1, fpx * .6 / b0.z); c.beginPath(); c.moveTo(x0, y0); c.lineTo(xT, yT); c.stroke();
+    const wv = vec(G.wind.from + 180), ln = 10 + Math.min(G.wind.kt, 15);
+    for (let k2 = 0; k2 < 3; k2++) { const t0 = k2 / 3, t1 = (k2 + 1) / 3, r0 = 2 - t0 * 1.1, r1 = 2 - t1 * 1.1;
+      poly([[x + wv.x * ln * t0, y + wv.y * ln * t0, 21 + r0], [x + wv.x * ln * t1, y + wv.y * ln * t1, 21 + r1], [x + wv.x * ln * t1, y + wv.y * ln * t1, 21 - r1], [x + wv.x * ln * t0, y + wv.y * ln * t0, 21 - r0]], k2 % 2 ? '#FFFFFF' : '#F26A1B'); }
+  };
+  sock3(SEG_X, SEG_Y); sock3(-L/2 + 500, -170); sock3(L/2 - 500, -170);
+  // airport signs (drawn far to near)
+  const headE = Math.sin(look * RAD + p.hdg * RAD);
+  AP_SIGNS.filter(sg => !(sg.east && headE < .3) && !(sg.west && headE > -.3))
+    .map(sg => ({sg, q: cam(sg.x, sg.y, 5)})).filter(o => o.q.z > 15 && o.q.z < 5000).sort((a, b) => b.q.z - a.q.z)
+    .forEach(({sg, q}) => {
+      const [sx, sy] = scr(q), hpx = fpx * 6 / q.z; if (hpx < 3) return;
+      const gq = cam(sg.x, sg.y, 0), gy = gq.z > 1 ? scr(gq)[1] : sy + hpx;
+      c.font = `700 ${Math.max(6, Math.round(hpx * .72))}px Barlow Condensed, Arial Narrow, sans-serif`;
+      const parts = sg.parts.map(pt => ({pt, w: c.measureText(pt.t).width + hpx * .7}));
+      const tw = parts.reduce((a, b) => a + b.w, 0); let xx = sx - tw / 2;
+      c.strokeStyle = '#2A2F36'; c.lineWidth = Math.max(1, hpx * .08);
+      c.beginPath(); c.moveTo(sx - tw * .35, sy + hpx / 2); c.lineTo(sx - tw * .35, gy); c.moveTo(sx + tw * .35, sy + hpx / 2); c.lineTo(sx + tw * .35, gy); c.stroke();
+      parts.forEach(({pt, w: pw}) => { const st = SIGN_ST[pt.s];
+        c.fillStyle = st.bg; c.fillRect(xx, sy - hpx / 2, pw, hpx);
+        if (st.bd) { c.strokeStyle = st.bd; c.lineWidth = Math.max(1, hpx * .07); c.strokeRect(xx + hpx * .1, sy - hpx * .4, pw - hpx * .2, hpx * .8); }
+        c.fillStyle = st.fg; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(pt.t, xx + pw / 2, sy + hpx * .04); xx += pw; });
+      c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+    });
+  { const q = cam(1040, 640, 30); if (q.z > 50 && q.z < 4000) { const [sx, sy] = scr(q); tag(c, 'Pine Ridge FBO, fuel', sx, sy - 10, 'rgba(27,36,51,.85)', '#FFFFFF'); } }
+
+  // guided path and next target, drawn in 3D at the ideal altitude
+  if (G.mode === 'guided' && g.ghost.length) {
+    const pts = g.ghostLine.map(q => cam(q.x, q.y, (q.alt != null ? q.alt : 700) - FIELD));
+    c.save(); c.strokeStyle = 'rgba(242,179,0,.95)'; c.lineWidth = 3; c.setLineDash([12, 9]); c.beginPath();
+    let pen = false;
+    for (let i = 0; i < pts.length - 1; i++) {
+      let a = pts[i], b = pts[i + 1]; if (a.z < 5 && b.z < 5) { pen = false; continue; }
+      const aCut = a.z < 5, bCut = b.z < 5;
+      if (aCut) { const t = (5 - a.z) / (b.z - a.z); a = {x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: 5}; }
+      if (bCut) { const t = (5 - b.z) / (a.z - b.z); b = {x: b.x + (a.x - b.x) * t, y: b.y + (a.y - b.y) * t, z: 5}; }
+      const [x1, y1] = scr(a), [x2, y2] = scr(b);
+      if (!pen || aCut) c.moveTo(x1, y1); c.lineTo(x2, y2); pen = !bCut;
+    }
+    c.stroke(); c.restore();
+    const ti = targetIndex(), tq = g.ghost[ti];
+    if (tq && tq.label) {
+      const q = cam(tq.p.x, tq.p.y, (g.ghostAlt[ti] || 700) - FIELD);
+      let sx = -1, sy = -1; if (q.z > 30) [sx, sy] = scr(q);
+      if (q.z > 30 && sx > 10 && sx < w - 10 && sy > 10 && sy < vh - 10) {
+        c.fillStyle = '#F2B300'; c.strokeStyle = '#1B2433'; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(sx, sy - 11); c.lineTo(sx + 11, sy); c.lineTo(sx, sy + 11); c.lineTo(sx - 11, sy); c.closePath(); c.fill(); c.stroke();
+        tag(c, tq.label, sx, sy - 28, '#1B2433', '#FFFFFF');
+      } else {
+        const rel = angDiff(hdgOf({x: tq.p.x - p.x, y: tq.p.y - p.y}), p.hdg + look);
+        tag(c, rel < 0 ? `◀ ${tq.label}` : `${tq.label} ▶`, rel < 0 ? 90 : w - 90, vh * .42, '#1B2433', '#F2B300');
+      }
+    }
+  }
+  // other airplanes
+  G.traffic.forEach(ai => {
+    const q = cam(ai.x, ai.y, ai.alt - FIELD); if (q.z < 30) return;
+    const [sx, sy] = scr(q), sz = Math.max(7, fpx * 36 / q.z);
+    c.strokeStyle = '#1D3557'; c.lineCap = 'round';
+    c.lineWidth = Math.max(2, sz * .07); c.beginPath(); c.moveTo(sx - sz / 2, sy - sz * .06); c.lineTo(sx + sz / 2, sy - sz * .06); c.stroke();
+    c.lineWidth = Math.max(2.5, sz * .12); c.beginPath(); c.moveTo(sx, sy - sz * .06); c.lineTo(sx, sy + sz * .12); c.stroke();
+    c.lineWidth = Math.max(1.5, sz * .05); c.beginPath(); c.moveTo(sx - sz * .15, sy - sz * .02); c.lineTo(sx + sz * .15, sy - sz * .02); c.stroke();
+    c.fillStyle = '#E0322B'; c.beginPath(); c.arc(sx - sz / 2, sy - sz * .06, 2, 0, 7); c.fill();
+    c.fillStyle = '#22B04B'; c.beginPath(); c.arc(sx + sz / 2, sy - sz * .06, 2, 0, 7); c.fill();
+    c.lineCap = 'butt';
+    if (q.z < 20000) { const dAlt = Math.round((ai.alt - p.alt) / 100) * 100;
+      tag(c, `${ai.name} ${dAlt === 0 ? 'same altitude' : (dAlt > 0 ? '+' : '−') + fmt(Math.abs(dAlt)) + ' ft'}`, sx, sy - sz * .3 - 16, 'rgba(47,111,181,.94)', '#FFFFFF'); }
+  });
+  if (Math.abs(look) < 25) {
+    c.fillStyle = '#2B313B'; c.beginPath(); c.moveTo(cx - w * .26, vh); c.quadraticCurveTo(cx, vh - vh * .13, cx + w * .26, vh); c.closePath(); c.fill();
+  } else {
+    // underside of the high wing and its strut when looking out the side window
+    const dir = look < 0 ? -1 : 1, x0 = dir < 0 ? w : 0;
+    c.fillStyle = '#C9CED6'; c.beginPath(); c.moveTo(x0, 0); c.lineTo(w - x0, 0); c.lineTo(w - x0, vh * .07); c.lineTo(x0, vh * .16); c.closePath(); c.fill();
+    c.strokeStyle = '#8D949E'; c.lineWidth = 6; c.beginPath(); c.moveTo(x0 - dir * w * .05, vh); c.lineTo(x0 - dir * w * .55, vh * .12); c.stroke();
+    tag(c, look < 0 ? 'Looking left' : 'Looking right', cx, vh * .24, 'rgba(27,36,51,.85)', '#FFFFFF');
+  }
+  c.restore();
+
+  drawPanel(c, w, h, vh, panelH);
+  drawMiniMap(c, w);
+}
+
+function drawPanel(c, w, h, vh, panelH) {
+  const p = G.plane;
+  c.fillStyle = '#1F252F'; c.fillRect(0, vh, w, panelH);
+  c.fillStyle = '#12161D'; c.beginPath(); c.moveTo(0, vh); c.lineTo(w, vh); c.lineTo(w, vh + 10); c.quadraticCurveTo(w / 2, vh + 22, 0, vh + 10); c.closePath(); c.fill();
+  const n = 6, r = Math.min(panelH * .33, w / (n * 2.4)), y = vh + panelH * .5;
+  const gauge = (i, label, frac, main, sub, pre) => {
+    const x = w * (i + .5) / n;
+    c.fillStyle = '#0C1017'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); c.strokeStyle = '#4C5668'; c.lineWidth = 2; c.stroke();
+    c.strokeStyle = '#8A96AA'; c.lineWidth = 1.3;
+    for (let k = 0; k <= 10; k++) { const a = (-225 + 270 * k / 10) * RAD; c.beginPath(); c.moveTo(x + Math.cos(a) * r * .82, y + Math.sin(a) * r * .82); c.lineTo(x + Math.cos(a) * r * .95, y + Math.sin(a) * r * .95); c.stroke(); }
+    if (pre) pre(x, y, r);
+    const a = (-225 + 270 * clamp(frac, 0, 1)) * RAD;
+    c.strokeStyle = '#F2B300'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(a) * r * .78, y + Math.sin(a) * r * .78); c.stroke();
+    c.fillStyle = '#FFFFFF'; c.textAlign = 'center'; c.font = `700 ${Math.round(r * .42)}px Barlow Condensed, Arial Narrow, sans-serif`; c.fillText(main, x, y + r * .55);
+    c.fillStyle = '#AFC0D8'; c.font = `${Math.max(10, Math.round(r * .24))}px Atkinson Hyperlegible, Verdana, sans-serif`;
+    c.fillText(label, x, y + r + 14); if (sub) c.fillText(sub, x, y + r * .85);
+  };
+  const asA = v => (-225 + 270 * clamp((v - 30) / 140, 0, 1)) * RAD;
+  gauge(0, 'Airspeed (kt)', (p.spd - 30) / 140, String(Math.round(p.spd)), null, (x, y, r) => {
+    const arc = (v1, v2, col, rad, lw) => { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.arc(x, y, rad, asA(v1), asA(v2)); c.stroke(); };
+    arc(40, 85, '#FFFFFF', r * .7, r * .07); arc(48, 129, '#2FB463', r * .78, r * .08); arc(129, 163, '#F2B300', r * .78, r * .08);
+    const a = asA(163); c.strokeStyle = '#E0322B'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + Math.cos(a) * r * .68, y + Math.sin(a) * r * .68); c.lineTo(x + Math.cos(a) * r * .95, y + Math.sin(a) * r * .95); c.stroke();
+  });
+  // attitude indicator
+  const ax = w * 1.5 / n;
+  c.save(); c.beginPath(); c.arc(ax, y, r, 0, 7); c.clip(); c.translate(ax, y); c.rotate(-G.ck.bank * RAD);
+  const off = clamp(G.ck.pitch * r / 18, -r, r);
+  c.fillStyle = '#3C8DDB'; c.fillRect(-r * 2, -r * 2 + off, r * 4, r * 2); c.fillStyle = '#9A6A3A'; c.fillRect(-r * 2, off, r * 4, r * 2);
+  c.strokeStyle = '#FFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(-r * 2, off); c.lineTo(r * 2, off); c.stroke();
+  c.lineWidth = 1; for (const pm of [-10, -5, 5, 10]) { const yy = off - pm * r / 18; c.beginPath(); c.moveTo(-r * .2, yy); c.lineTo(r * .2, yy); c.stroke(); }
+  c.restore();
+  c.strokeStyle = '#4C5668'; c.lineWidth = 2; c.beginPath(); c.arc(ax, y, r, 0, 7); c.stroke();
+  c.strokeStyle = '#F2B300'; c.lineWidth = 3; c.beginPath(); c.moveTo(ax - r * .55, y); c.lineTo(ax - r * .18, y); c.lineTo(ax, y + r * .1); c.lineTo(ax + r * .18, y); c.lineTo(ax + r * .55, y); c.stroke();
+  c.fillStyle = '#AFC0D8'; c.textAlign = 'center'; c.font = `${Math.max(10, Math.round(r * .24))}px Atkinson Hyperlegible, Verdana, sans-serif`; c.fillText('Attitude', ax, y + r + 14);
+  // turn coordinator with the slip/skid ball
+  const tx = w * 2.5 / n, simRate = (p.yr || 0) / tsNow(), ta = clamp(simRate / 3, -1.6, 1.6) * 20 * RAD;
+  c.fillStyle = '#0C1017'; c.beginPath(); c.arc(tx, y, r, 0, 7); c.fill(); c.strokeStyle = '#4C5668'; c.lineWidth = 2; c.stroke();
+  c.strokeStyle = '#FFFFFF'; c.lineWidth = 2;
+  [[-1, 0], [1, 0], [-1, 1], [1, 1]].forEach(([sd, std]) => { const a = std ? 20 * RAD : 0, px = tx + sd * Math.cos(a) * r * .86, py = y + Math.sin(a) * r * .86;
+    c.beginPath(); c.moveTo(px, py); c.lineTo(px - sd * Math.cos(a) * r * .12, py - Math.sin(a) * r * .12); c.stroke(); });
+  c.fillStyle = '#AFC0D8'; c.font = `700 ${Math.max(9, Math.round(r * .2))}px Atkinson Hyperlegible, Verdana, sans-serif`;
+  c.fillText('L', tx - Math.cos(20 * RAD) * r * .62, y + r * .42); c.fillText('R', tx + Math.cos(20 * RAD) * r * .62, y + r * .42);
+  c.save(); c.translate(tx, y - r * .1); c.rotate(ta); c.strokeStyle = '#FFFFFF'; c.lineWidth = 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-r * .62, 0); c.lineTo(r * .62, 0); c.stroke();
+  c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(0, 0, r * .1, 0, 7); c.fill();
+  c.lineWidth = 2; c.beginPath(); c.moveTo(0, -r * .1); c.lineTo(0, -r * .26); c.stroke(); c.restore(); c.lineCap = 'butt';
+  const tcx = tx, tcy = y - r * .55, trr = r * 1.15, b0 = 90 * RAD, span = 20 * RAD;
+  c.strokeStyle = '#C9D2E0'; c.lineWidth = r * .2; c.beginPath(); c.arc(tcx, tcy, trr, b0 - span, b0 + span); c.stroke();
+  c.strokeStyle = '#1A2230'; c.lineWidth = r * .14; c.beginPath(); c.arc(tcx, tcy, trr, b0 - span, b0 + span); c.stroke();
+  c.strokeStyle = '#FFFFFF'; c.lineWidth = 1.5;
+  [-1, 1].forEach(sd => { const a = b0 + sd * .085; c.beginPath(); c.moveTo(tcx + Math.cos(a) * (trr - r * .1), tcy + Math.sin(a) * (trr - r * .1)); c.lineTo(tcx + Math.cos(a) * (trr + r * .1), tcy + Math.sin(a) * (trr + r * .1)); c.stroke(); });
+  const ballA = b0 - clamp(p.ground ? 0 : (p.ball || 0), -1.2, 1.2) * .3;
+  c.fillStyle = '#F4F4F4'; c.beginPath(); c.arc(tcx + Math.cos(ballA) * trr, tcy + Math.sin(ballA) * trr, r * .065, 0, 7); c.fill();
+  c.fillStyle = '#AFC0D8'; c.font = `${Math.max(10, Math.round(r * .24))}px Atkinson Hyperlegible, Verdana, sans-serif`; c.fillText('Turn coordinator', tx, y + r + 14);
+  const agl = Math.max(0, Math.round(p.alt - FIELD));
+  gauge(3, 'Altitude (ft)', ((p.alt % 1000) + 1000) % 1000 / 1000 * (270 / 270), fmt(Math.round(p.alt / 10) * 10), `${agl} above`);
+  gauge(4, 'Vertical speed', (p.vs + 2000) / 4000, `${p.vs > 0 ? '+' : ''}${fmt(Math.round(p.vs / 50) * 50)}`, 'ft/min');
+  gauge(5, 'Power (RPM)', p.power, fmt(Math.round((700 + p.power * 1800) / 10) * 10), `Flaps ${Math.round((p.flaps || 0) * 10)}°`);
+  c.textAlign = 'left';
+}
+
+function drawMiniMap(c, w) {
+  const p = G.plane, mw = Math.min(320, w * .36), mh = mw * .72, x0 = w - mw - 12, y0 = 12;
+  c.save(); rr(c, x0, y0, mw, mh, 10); c.clip(); c.translate(x0, y0);
+  drawMap(c, mw, mh, {guide: G.mode !== 'checkride', ghost: G.mode === 'guided', labels: false, animate: true, legLabels: false});
+  const Vw = view(mw, mh);
+  G.traffic.forEach(ai => drawPlane(c, Vw.X(ai.x), Vw.Y(ai.y), ai.hdg, 14, '#3B7DC4', '#0E2440', 0, '#FFFFFF'));
+  drawPlane(c, Vw.X(p.x), Vw.Y(p.y), p.hdg, 19, '#FFFFFF', '#1B2433', 0, '#A3246A');
+  c.restore();
+  c.strokeStyle = '#1B2433'; c.lineWidth = 1.5; rr(c, x0, y0, mw, mh, 10); c.stroke();
+}
+
+function drawProfile() {
+  const wrap = $('profWrap'), cv = $('profile'), pr = G.prof || [];
+  wrap.hidden = pr.length < 5; if (wrap.hidden) return;
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = r.width, h = r.height, pl = 48, pb = 28, pt = 12, prr = 12, xmin = -7000, xmax = 2500, ymax = 600;
+  const X = dd => pl + (dd - xmin) / (xmax - xmin) * (w - pl - prr), Y = a => h - pb - clamp(a, 0, ymax) / ymax * (h - pb - pt);
+  c.fillStyle = '#EAF2F9'; c.fillRect(0, 0, w, h); c.fillStyle = '#A9C98A'; c.fillRect(0, Y(0), w, h - Y(0));
+  c.fillStyle = '#3F454C'; c.fillRect(X(0), Y(0) - 2, X(xmax) - X(0), 5);
+  c.font = '12px Atkinson Hyperlegible, Verdana, sans-serif'; c.fillStyle = '#3E4756'; c.strokeStyle = 'rgba(0,0,0,.1)'; c.lineWidth = 1; c.textAlign = 'right';
+  [200, 400, 600].forEach(a => { c.beginPath(); c.moveTo(pl, Y(a)); c.lineTo(w - prr, Y(a)); c.stroke(); c.fillText(`${a} ft`, pl - 6, Y(a) + 4); });
+  c.textAlign = 'center'; c.fillText('Runway threshold', X(0), h - 8); c.fillText('1 mile out', X(-6076), h - 8);
+  c.strokeStyle = '#D9A400'; c.lineWidth = 2.5; c.setLineDash([8, 6]);
+  c.beginPath(); c.moveTo(X(1000), Y(0)); c.lineTo(X(xmin), Y((1000 - xmin) * Math.tan(3 * RAD))); c.stroke(); c.setLineDash([]);
+  c.strokeStyle = '#A3246A'; c.lineWidth = 3; c.lineJoin = 'round'; c.beginPath();
+  pr.forEach((q, i) => { const dd = q.u + L/2; i ? c.lineTo(X(dd), Y(q.agl)) : c.moveTo(X(dd), Y(q.agl)); }); c.stroke();
+  c.textAlign = 'left'; c.fillStyle = '#8A6A00'; c.font = '700 12px Atkinson Hyperlegible, Verdana, sans-serif'; c.fillText('3° glidepath', X(-6400), Y((1000 + 6400) * Math.tan(3 * RAD)) - 8);
+  c.textAlign = 'left';
+}
+
+/* ---------- map clicks ---------- */
+canvas.addEventListener('pointermove', ev => {
+  if (!G || !G.geo) return;
+  const i = hotspotAt(ev.offsetX, ev.offsetY); G.hover = i;
+  const quizOpen = G.quiz && !G.quiz.result && G.quiz.i < G.quiz.qs.length;
+  canvas.style.cursor = i != null || quizOpen ? 'pointer' : 'default';
+});
+canvas.addEventListener('pointerleave', () => { if (G) G.hover = null; });
+canvas.addEventListener('click', ev => {
+  if (!G || !G.geo || !overlay.hidden) return;
+  if (G.scenario === 'explore') {
+    if (G.quiz) { if (!G.quiz.result && G.quiz.i < G.quiz.qs.length) answerQuiz(ev.offsetX, ev.offsetY); return; }
+    const i = hotspotAt(ev.offsetX, ev.offsetY); if (i != null) { G.sel = i; renderInfo(); }
+    return;
+  }
+  const i = hotspotAt(ev.offsetX, ev.offsetY);
+  if (i == null) return;
+  G.hover = null;
+  openModal(hotInfoHTML(G.geo.hot[i]) + `<div class="mrow"><button class="primary" id="mCont">Continue flying</button></div>`);
+  $('mCont').onclick = closeModal;
+});
+$('btnTour').onclick = () => { if (!G || !G.geo) return; G.quiz = null; G.sel = 0; renderInfo(); };
+$('btnQuiz').onclick = () => { if (G && G.geo) startQuiz(); };
+$('btnFly').onclick = () => show('scrMenu');
+
+/* ---------- main loop ---------- */
+let last = performance.now();
+let wasOpen = false;
+function frame(ts) {
+  const dt = Math.min(.05, (ts - last) / 1000); last = ts;
+  if (G && G.running && wasOpen && overlay.hidden) { G.graceUntil = G.t + 3; G.resumeAt = performance.now() + 2000; for (const k in keys) keys[k] = false; }
+  const waiting = !!(G && G.resumeAt && performance.now() < G.resumeAt);
+  const rt = $('resumeTag'); rt.hidden = !waiting || !overlay.hidden; if (waiting) rt.querySelector('b').textContent = Math.ceil((G.resumeAt - performance.now()) / 1000);
+  wasOpen = !overlay.hidden;
+  if (G && G.running && !G.paused && overlay.hidden && !G.ended && !waiting) update(dt);
+  if (!$('scrSim').hidden) {
+    const ckFull = G && G.ck && G.ck.on && performance.now() - G.ck.onAt > 1100;
+    if (!ckFull) drawSim();
+    if (G && G.ck && G.ck.on) drawCockpit();
+    updatePanel();
+  }
+  if (G && !$('debrief').hidden) drawReplay();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
